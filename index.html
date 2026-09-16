@@ -383,10 +383,10 @@
   'use strict';
 
   /* ============ FTMS constants ============ */
-  const SVC_FTMS = 0x1826;
-  const CHR_TREADMILL_DATA = 0x2acd;
-  const CHR_FM_STATUS = 0x2ada;
-  const CHR_CONTROL_POINT = 0x2ad9;
+  const SVC_FTMS = '00001826-0000-1000-8000-00805f9b34fb';
+  const CHR_TREADMILL_DATA = '00002acd-0000-1000-8000-00805f9b34fb';
+  const CHR_FM_STATUS = '00002ada-0000-1000-8000-00805f9b34fb';
+  const CHR_CONTROL_POINT = '00002ad9-0000-1000-8000-00805f9b34fb';
   const OP = { REQUEST_CONTROL:0x00, RESET:0x01, SET_SPEED:0x02, SET_INCLINE:0x03, START:0x07, STOP:0x08, RESPONSE:0x80 };
 
   /* ============ Preset programs ============ */
@@ -493,8 +493,15 @@
     }catch(err){
       console.warn('connect failed', err);
       setStatus('idle','未連線');
-      if(err && err.name!=='NotFoundError'){
-        alertInline('連線失敗：'+(err.message||err.name||'未知錯誤'));
+      if(err && err.name==='NotFoundError'){
+        // user cancelled the device picker, not a real error
+      }else{
+        let detail = '';
+        try{
+          detail = [err && err.name, err && err.message, (!err || (!err.name && !err.message)) ? String(err) : ''].filter(Boolean).join(' — ');
+        }catch(e){ detail = 'stringify失敗'; }
+        if(!detail) detail = '(沒有任何錯誤細節，可能是連線在配對/服務探索階段被中斷)';
+        alertInline('連線失敗：'+detail, 7000);
       }
     }
   }
@@ -512,13 +519,13 @@
     $('statusText').textContent = text;
   }
 
-  function alertInline(msg){
+  function alertInline(msg, duration){
     // lightweight non-blocking notice
     const n=document.createElement('div');
     n.textContent=msg;
-    n.style.cssText='position:fixed;left:16px;right:16px;bottom:90px;background:#2A1414;color:#FFB4B4;border:1px solid #5A2626;padding:12px 14px;border-radius:10px;font-size:13px;z-index:99;';
+    n.style.cssText='position:fixed;left:16px;right:16px;bottom:90px;background:#2A1414;color:#FFB4B4;border:1px solid #5A2626;padding:12px 14px;border-radius:10px;font-size:13px;z-index:99;word-break:break-word;';
     document.body.appendChild(n);
-    setTimeout(()=>n.remove(), 3800);
+    setTimeout(()=>n.remove(), duration||3800);
   }
 
   /* ============ Control point ============ */
