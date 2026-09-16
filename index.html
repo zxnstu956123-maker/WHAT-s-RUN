@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DD05 控制台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12161B;
+    --surface:#1B2129;
+    --surface-2:#222A33;
+    --border:#2C3640;
+    --text:#EDEFF1;
+    --text-dim:#8C97A3;
+    --text-faint:#5B6672;
+    --accent:#FF8A3D;
+    --accent-dim:#7A4A28;
+    --teal:#4FD1C5;
+    --danger:#FF5D5D;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--text); overscroll-behavior-y:none;}
+  body{
+    font-family:'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    padding-bottom:78px;
+    min-height:100vh;
+  }
+  .mono{font-family:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;}
+  h1,h2,h3{margin:0; font-weight:600;}
+  button{font-family:inherit; border:none; cursor:pointer;}
+  button:focus-visible, a:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  header.top{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 18px 14px;
+    position:sticky; top:0; background:var(--bg); z-index:10;
+    border-bottom:1px solid var(--border);
+  }
+  header.top h1{font-size:18px; letter-spacing:0.2px;}
+  .status-pill{
+    display:flex; align-items:center; gap:6px;
+    padding:6px 12px; border-radius:99px;
+    background:var(--surface); border:1px solid var(--border);
+    font-size:12.5px; color:var(--text-dim);
+  }
+  .status-pill .dot{width:7px; height:7px; border-radius:50%; background:var(--text-faint);}
+  .status-pill.connected{color:var(--teal); border-color:#2A4A48;}
+  .status-pill.connected .dot{background:var(--teal); box-shadow:0 0 6px var(--teal);}
+  .status-pill.connecting .dot{background:var(--accent); animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+  .icon-btn{
+    background:none; color:var(--text-dim); padding:6px; border-radius:8px; font-size:18px; line-height:1;
+  }
+  .icon-btn:active{background:var(--surface);}
+
+  main{padding:18px; max-width:520px; margin:0 auto;}
+  .view{display:none;}
+  .view.active{display:block; animation:fadein .25s ease;}
+  @keyframes fadein{from{opacity:0; transform:translateY(4px);}to{opacity:1; transform:translateY(0);}}
+
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:18px; margin-bottom:14px;
+  }
+  .card h2{font-size:14px; color:var(--text-dim); font-weight:500; margin-bottom:12px;}
+
+  /* ---- Home / calendar ---- */
+  .month-summary{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px;}
+  .month-summary .big{font-size:26px; font-weight:700;}
+  .month-summary .sub{color:var(--text-dim); font-size:13px;}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:5px;}
+  .cal-dow{font-size:11px; color:var(--text-faint); text-align:center; padding-bottom:4px;}
+  .cal-cell{
+    aspect-ratio:1; border-radius:7px; display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:var(--text-dim); background:var(--surface-2); position:relative;
+  }
+  .cal-cell.empty{background:transparent;}
+  .cal-cell.today{box-shadow:inset 0 0 0 1.5px var(--accent);}
+  .cal-cell .n{position:relative; z-index:1;}
+  .cal-cell.has1{background:#3A2E22;}
+  .cal-cell.has2{background:#5A3D20;}
+  .cal-cell.has3{background:#8A4E1E;}
+  .cal-cell.has4{background:var(--accent); color:#1B1206;}
+
+  .cta-start{
+    width:100%; padding:16px; border-radius:var(--radius); background:var(--accent); color:#1B1206;
+    font-size:16px; font-weight:700; margin-top:4px;
+  }
+  .cta-start:active{opacity:.85;}
+
+  .history-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:13px 0; border-bottom:1px solid var(--border);
+  }
+  .history-row:last-child{border-bottom:none;}
+  .history-row .d{font-size:13px; color:var(--text-dim);}
+  .history-row .m{font-size:14px; margin-top:2px;}
+  .history-row .stat{font-family:'IBM Plex Mono',monospace; font-size:15px;}
+  .empty-note{color:var(--text-faint); font-size:13px; padding:6px 0 2px;}
+
+  /* ---- Connect ---- */
+  .connect-box{text-align:center; padding:26px 18px;}
+  .connect-box .glyph{font-size:34px; margin-bottom:10px;}
+  .connect-box p{color:var(--text-dim); font-size:13.5px; margin:8px 0 18px;}
+  .btn-primary{
+    padding:14px 26px; border-radius:12px; background:var(--accent); color:#1B1206; font-weight:700; font-size:15px;
+  }
+  .btn-secondary{
+    padding:13px 22px; border-radius:12px; background:var(--surface-2); color:var(--text); font-weight:600; font-size:14px; border:1px solid var(--border);
+  }
+  .warn-box{
+    background:#2A2118; border:1px solid #4A3420; color:#E8B978; border-radius:10px; padding:12px 14px; font-size:12.5px; margin-top:14px; text-align:left;
+  }
+
+  /* ---- Program picker ---- */
+  .program-item{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    padding:14px; border-radius:12px; background:var(--surface-2); border:1.5px solid var(--border);
+    margin-bottom:10px;
+  }
+  .program-item.selected{border-color:var(--accent); background:#241C13;}
+  .program-item .info .t{font-weight:600; font-size:14.5px;}
+  .program-item .info .d{color:var(--text-dim); font-size:12px; margin-top:3px;}
+  .program-item .len{font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--text-dim); white-space:nowrap;}
+  .radio{width:19px; height:19px; border-radius:50%; border:2px solid var(--text-faint); flex-shrink:0;}
+  .program-item.selected .radio{border-color:var(--accent); background:radial-gradient(circle, var(--accent) 40%, transparent 42%);}
+
+  /* ---- Live workout ---- */
+  .live-hero{
+    display:flex; flex-direction:column; align-items:center; padding:20px 0 6px;
+  }
+  .live-hero .label{color:var(--text-dim); font-size:12.5px;}
+  .live-hero .speed{font-family:'IBM Plex Mono',monospace; font-size:64px; font-weight:600; line-height:1; margin:6px 0;}
+  .live-hero .speed .unit{font-size:20px; color:var(--text-dim); margin-left:4px;}
+  .live-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px 0;}
+  .live-stat{background:var(--surface-2); border-radius:10px; padding:12px 8px; text-align:center;}
+  .live-stat .v{font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:600;}
+  .live-stat .l{font-size:10.5px; color:var(--text-dim); margin-top:3px;}
+  .segment-bar{
+    background:var(--surface-2); border-radius:10px; padding:12px 14px; margin:8px 0 16px;
+  }
+  .segment-bar .row1{display:flex; justify-content:space-between; font-size:13px;}
+  .segment-bar .row1 .now{color:var(--accent); font-weight:600;}
+  .segment-bar .track{height:5px; background:var(--border); border-radius:3px; margin:10px 0 6px; overflow:hidden;}
+  .segment-bar .fill{height:100%; background:var(--accent); border-radius:3px; transition:width .3s linear;}
+  .segment-bar .row2{display:flex; justify-content:space-between; font-size:11.5px; color:var(--text-faint);}
+
+  .manual-controls{display:flex; gap:10px; margin-bottom:14px;}
+  .stepper{flex:1; background:var(--surface-2); border-radius:12px; padding:12px; text-align:center;}
+  .stepper .l{font-size:11px; color:var(--text-dim); margin-bottom:6px;}
+  .stepper .row{display:flex; align-items:center; justify-content:center; gap:10px;}
+  .stepper button{
+    width:38px; height:38px; border-radius:10px; background:var(--surface); border:1px solid var(--border);
+    color:var(--text); font-size:18px; font-weight:600;
+  }
+  .stepper button:active{background:var(--border);}
+  .stepper .val{font-family:'IBM Plex Mono',monospace; font-size:17px; min-width:56px;}
+
+  .control-row{display:flex; gap:10px;}
+  .control-row button{flex:1; padding:15px; border-radius:12px; font-weight:700; font-size:14.5px;}
+  .btn-stop{background:var(--danger); color:#2A0505;}
+  .btn-pause{background:var(--surface-2); color:var(--text); border:1px solid var(--border);}
+  .btn-go{background:var(--accent); color:#1B1206;}
+
+  /* ---- Summary ---- */
+  .summary-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px;}
+  .summary-stat{background:var(--surface-2); border-radius:10px; padding:14px;}
+  .summary-stat .v{font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600;}
+  .summary-stat .l{font-size:11.5px; color:var(--text-dim); margin-top:4px;}
+  .chart-wrap{background:var(--surface-2); border-radius:10px; padding:12px; margin-bottom:16px;}
+  .chart-wrap svg{width:100%; height:auto; display:block;}
+  .health-btn{
+    width:100%; padding:15px; border-radius:12px; background:var(--surface-2); border:1.5px solid var(--teal);
+    color:var(--teal); font-weight:700; font-size:14.5px; margin-bottom:10px;
+  }
+  .health-btn:active{background:#1A2E2B;}
+  .done-btn{width:100%; padding:13px; border-radius:12px; background:none; color:var(--text-dim); font-size:13.5px; border:1px solid var(--border);}
+
+  /* ---- nav ---- */
+  nav.bottom{
+    position:fixed; bottom:0; left:0; right:0;
+    display:flex; background:var(--surface); border-top:1px solid var(--border);
+    padding:8px 6px calc(env(safe-area-inset-bottom) + 8px);
+    z-index:20;
+  }
+  nav.bottom button{
+    flex:1; background:none; color:var(--text-faint); display:flex; flex-direction:column; align-items:center; gap:3px;
+    padding:6px 0; font-size:11px;
+  }
+  nav.bottom button .ic{font-size:19px;}
+  nav.bottom button.active{color:var(--accent);}
+
+  /* ---- modal ---- */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:flex-end; z-index:50;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal{
+    background:var(--surface); border-radius:20px 20px 0 0; padding:22px 20px calc(env(safe-area-inset-bottom) + 22px);
+    width:100%; max-height:82vh; overflow-y:auto;
+  }
+  .modal h3{font-size:16px; margin-bottom:14px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:6px;}
+  .field input[type=text]{
+    width:100%; padding:12px 13px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border);
+    color:var(--text); font-size:14px; font-family:inherit;
+  }
+  .field-note{font-size:11.5px; color:var(--text-faint); margin-top:6px; line-height:1.5;}
+  .link-btn{background:none; color:var(--teal); font-size:13px; padding:0; text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>DD05 控制台</h1>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <div class="status-pill" id="statusPill"><span class="dot"></span><span id="statusText">未連線</span></div>
+    <button class="icon-btn" id="settingsBtn" aria-label="設定">⚙</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- HOME -->
+  <section class="view" id="view-home">
+    <div class="card">
+      <div class="month-summary">
+        <div>
+          <div class="big" id="monthMinutes">0 分鐘</div>
+          <div class="sub" id="monthCount">本月尚無紀錄</div>
+        </div>
+        <div class="sub" id="monthLabel">—</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+    <button class="cta-start" id="goWorkoutBtn">開始運動</button>
+
+    <div class="card" style="margin-top:14px;">
+      <h2>最近紀錄</h2>
+      <div id="recentList"><div class="empty-note">還沒有運動紀錄</div></div>
+    </div>
+  </section>
+
+  <!-- WORKOUT -->
+  <section class="view" id="view-workout">
+
+    <!-- not connected -->
+    <div id="wo-connect" class="card connect-box">
+      <div class="glyph">📡</div>
+      <h2 style="margin-bottom:0;">連線 DD05</h2>
+      <p>透過藍牙直接連上走步機，資料只在你的手機跟機器之間傳輸，不經過任何雲端伺服器。</p>
+      <button class="btn-primary" id="connectBtn">連接走步機</button>
+      <div class="warn-box" id="noBleWarn" style="display:none;">
+        這個瀏覽器不支援 Web Bluetooth。iPhone 上請用「Bluefy」瀏覽器開啟這個頁面（Safari 本身不支援）。
+      </div>
+    </div>
+
+    <!-- connected, picking mode -->
+    <div id="wo-picker" style="display:none;">
+      <div class="card">
+        <h2>選擇菜單</h2>
+        <div id="programList"></div>
+      </div>
+      <button class="cta-start" id="startWorkoutBtn">開始</button>
+    </div>
+
+    <!-- live session -->
+    <div id="wo-live" style="display:none;">
+      <div class="card">
+        <div class="live-hero">
+          <div class="label" id="liveModeLabel">自由走</div>
+          <div class="speed mono"><span id="liveSpeed">0.0</span><span class="unit">km/h</span></div>
+        </div>
+        <div id="segmentBar" class="segment-bar" style="display:none;">
+          <div class="row1"><span>目前：<span class="now" id="segNowLabel">—</span></span><span id="segTimeLeft">--:--</span></div>
+          <div class="track"><div class="fill" id="segFill" style="width:0%;"></div></div>
+          <div class="row2"><span id="segNextLabel">接下來：—</span><span id="segTotalTime">00:00 / 00:00</span></div>
+        </div>
+        <div class="live-grid">
+          <div class="live-stat"><div class="v mono" id="liveDist">0.00</div><div class="l">距離 km</div></div>
+          <div class="live-stat"><div class="v mono" id="liveTime">00:00</div><div class="l">時間</div></div>
+          <div class="live-stat"><div class="v mono" id="liveCal">--</div><div class="l">大卡</div></div>
+        </div>
+
+        <div id="manualControls" class="manual-controls" style="display:none;">
+          <div class="stepper">
+            <div class="l">速度 km/h</div>
+            <div class="row">
+              <button id="spdDown">−</button>
+              <div class="val mono" id="spdVal">3.5</div>
+              <button id="spdUp">+</button>
+            </div>
+          </div>
+          <div class="stepper">
+            <div class="l">坡度 %</div>
+            <div class="row">
+              <button id="incDown">−</button>
+              <div class="val mono" id="incVal">1.0</div>
+              <button id="incUp">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <button class="btn-pause" id="pauseBtn">暫停</button>
+          <button class="btn-stop" id="stopBtn">結束運動</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- summary -->
+    <div id="wo-summary" style="display:none;">
+      <div class="card">
+        <h2>本次運動</h2>
+        <div class="summary-grid">
+          <div class="summary-stat"><div class="v" id="sumDuration">--</div><div class="l">時長</div></div>
+          <div class="summary-stat"><div class="v" id="sumDistance">--</div><div class="l">距離 km</div></div>
+          <div class="summary-stat"><div class="v" id="sumAvgSpeed">--</div><div class="l">平均速度</div></div>
+          <div class="summary-stat"><div class="v" id="sumCal">--</div><div class="l">大卡</div></div>
+        </div>
+        <div class="chart-wrap"><div id="chartHost"></div></div>
+        <button class="health-btn" id="saveHealthBtn">存入 Apple 健康</button>
+        <button class="done-btn" id="doneSummaryBtn">回到首頁</button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- HISTORY -->
+  <section class="view" id="view-history">
+    <div class="card">
+      <h2>所有紀錄</h2>
+      <div id="fullHistoryList"><div class="empty-note">還沒有運動紀錄</div></div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="bottom">
+  <button data-view="home" class="active"><span class="ic">🏠</span>首頁</button>
+  <button data-view="workout"><span class="ic">🏃</span>運動</button>
+  <button data-view="history"><span class="ic">📋</span>記錄</button>
+</nav>
+
+<!-- settings modal -->
+<div class="modal-backdrop" id="settingsModal">
+  <div class="modal">
+    <h3>設定</h3>
+    <div class="field">
+      <label>Apple 捷徑名稱</label>
+      <input type="text" id="shortcutNameInput" placeholder="例如：DD05記錄">
+      <div class="field-note">要跟你在「捷徑」App 裡建立的捷徑名稱完全一致。設定教學在下方連結。</div>
+    </div>
+    <button class="link-btn" id="showShortcutGuide">怎麼設定這個捷徑？</button>
+    <div id="shortcutGuideBox" style="display:none; margin-top:14px;" class="field-note"></div>
+    <div style="margin-top:20px; display:flex; gap:10px;">
+      <button class="btn-secondary" id="disconnectBtn" style="flex:1;">中斷藍牙連線</button>
+      <button class="btn-primary" id="closeSettingsBtn" style="flex:1;">完成</button>
+    </div>
+  </div>
+</div>
+
+<!-- history detail modal -->
+<div class="modal-backdrop" id="detailModal">
+  <div class="modal">
+    <h3 id="detailDate">—</h3>
+    <div class="summary-grid" id="detailStats"></div>
+    <div class="chart-wrap"><div id="detailChartHost"></div></div>
+    <button class="health-btn" id="detailSaveHealthBtn">存入 Apple 健康</button>
+    <button class="done-btn" id="closeDetailBtn">關閉</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ============ FTMS constants ============ */
+  const SVC_FTMS = 0x1826;
+  const CHR_TREADMILL_DATA = 0x2acd;
+  const CHR_FM_STATUS = 0x2ada;
+  const CHR_CONTROL_POINT = 0x2ad9;
+  const OP = { REQUEST_CONTROL:0x00, RESET:0x01, SET_SPEED:0x02, SET_INCLINE:0x03, START:0x07, STOP:0x08, RESPONSE:0x80 };
+
+  /* ============ Preset programs ============ */
+  const PROGRAMS = [
+    { id:'free', name:'自由走', desc:'手動控制速度與坡度', segments:null },
+    { id:'fatburn30', name:'30分鐘 脂肪燃燒', desc:'暖身 + 5組間歇 + 燃脂 + 緩和', segments:[
+      {label:'暖身', duration:300, speed:3.5, incline:1.0},
+      {label:'間歇衝刺', duration:120, speed:6.5, incline:2.0},
+      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
+      {label:'間歇衝刺', duration:120, speed:6.5, incline:2.0},
+      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
+      {label:'間歇衝刺', duration:120, speed:6.5, incline:2.0},
+      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
+      {label:'間歇衝刺', duration:120, speed:6.5, incline:2.0},
+      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
+      {label:'間歇衝刺', duration:120, speed:6.5, incline:2.0},
+      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
+      {label:'穩定燃脂', duration:300, speed:5.5, incline:1.0},
+      {label:'緩和收操', duration:300, speed:3.5, incline:0.0},
+    ]},
+    { id:'quick20', name:'20分鐘 快速有氧', desc:'上班前 / 下班後的短時間菜單', segments:[
+      {label:'暖身', duration:180, speed:3.5, incline:0.5},
+      {label:'加速', duration:240, speed:5.5, incline:1.0},
+      {label:'衝刺', duration:180, speed:6.5, incline:1.5},
+      {label:'加速', duration:240, speed:5.5, incline:1.0},
+      {label:'衝刺', duration:180, speed:6.5, incline:1.5},
+      {label:'緩和', duration:180, speed:3.5, incline:0.0},
+    ]},
+    { id:'incline40', name:'40分鐘 坡度耐力', desc:'低速高坡度，練心肺也練腿力', segments:[
+      {label:'暖身', duration:300, speed:3.5, incline:1.0},
+      {label:'爬坡 1', duration:420, speed:4.0, incline:4.0},
+      {label:'平緩', duration:180, speed:4.5, incline:1.0},
+      {label:'爬坡 2', duration:420, speed:4.0, incline:6.0},
+      {label:'平緩', duration:180, speed:4.5, incline:1.0},
+      {label:'爬坡 3', duration:420, speed:4.0, incline:8.0},
+      {label:'平緩', duration:180, speed:4.5, incline:1.0},
+      {label:'緩和收操', duration:300, speed:3.0, incline:0.0},
+    ]},
+  ];
+  PROGRAMS.forEach(p=>{ p.totalSec = p.segments ? p.segments.reduce((a,s)=>a+s.duration,0) : null; });
+
+  /* ============ state ============ */
+  let device=null, server=null, ftmsService=null;
+  let chData=null, chStatus=null, chControl=null;
+  let controlQueue = Promise.resolve();
+  let pendingResolve=null;
+
+  let selectedProgramId = 'free';
+  let manualSpeed = 3.5, manualIncline = 1.0;
+
+  let session = null; // active session object while running
+  let sessionTimer = null;
+  let segmentStartIdx = -1;
+
+  let dbNS = null;
+  const LS_KEY = 'dd05_sessions_v1';
+  const LS_SETTINGS = 'dd05_settings_v1';
+
+  /* ============ helpers ============ */
+  function $(id){ return document.getElementById(id); }
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function fmtTime(sec){ sec=Math.max(0,Math.round(sec)); const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60; return h>0 ? `${h}:${pad2(m)}:${pad2(s)}` : `${pad2(m)}:${pad2(s)}`; }
+  function todayStr(d){ d=d||new Date(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+  function uid(){ return 'sess_'+Date.now()+'_'+Math.random().toString(36).slice(2,8); }
+
+  function loadSettings(){
+    try{ return JSON.parse(localStorage.getItem(LS_SETTINGS)||'{}'); }catch(e){ return {}; }
+  }
+  function saveSettings(s){
+    try{ localStorage.setItem(LS_SETTINGS, JSON.stringify(s)); }catch(e){}
+  }
+
+  /* ============ Bluetooth connect ============ */
+  async function connect(){
+    if(!navigator.bluetooth){ $('noBleWarn').style.display='block'; return; }
+    setStatus('connecting','連線中…');
+    try{
+      device = await navigator.bluetooth.requestDevice({
+        filters:[{ services:[SVC_FTMS] }],
+        optionalServices:[SVC_FTMS]
+      });
+      device.addEventListener('gattserverdisconnected', onDisconnected);
+      server = await device.gatt.connect();
+      ftmsService = await server.getPrimaryService(SVC_FTMS);
+      chData = await ftmsService.getCharacteristic(CHR_TREADMILL_DATA);
+      chControl = await ftmsService.getCharacteristic(CHR_CONTROL_POINT);
+      try{ chStatus = await ftmsService.getCharacteristic(CHR_FM_STATUS); }catch(e){ chStatus=null; }
+
+      await chData.startNotifications();
+      chData.addEventListener('characteristicvaluechanged', onTreadmillData);
+
+      chControl.addEventListener('characteristicvaluechanged', onControlResponse);
+      await chControl.startNotifications();
+
+      if(chStatus){
+        try{ await chStatus.startNotifications(); chStatus.addEventListener('characteristicvaluechanged', ()=>{}); }catch(e){}
+      }
+
+      await sendControl([OP.REQUEST_CONTROL]);
+
+      setStatus('connected','已連線');
+      $('wo-connect').style.display='none';
+      $('wo-picker').style.display='block';
+    }catch(err){
+      console.warn('connect failed', err);
+      setStatus('idle','未連線');
+      if(err && err.name!=='NotFoundError'){
+        alertInline('連線失敗：'+(err.message||err.name||'未知錯誤'));
+      }
+    }
+  }
+
+  function onDisconnected(){
+    setStatus('idle','已斷線');
+    $('wo-connect').style.display='block';
+    $('wo-picker').style.display='none';
+    $('wo-live').style.display='none';
+  }
+
+  function setStatus(state, text){
+    const pill=$('statusPill');
+    pill.className = 'status-pill '+state;
+    $('statusText').textContent = text;
+  }
+
+  function alertInline(msg){
+    // lightweight non-blocking notice
+    const n=document.createElement('div');
+    n.textContent=msg;
+    n.style.cssText='position:fixed;left:16px;right:16px;bottom:90px;background:#2A1414;color:#FFB4B4;border:1px solid #5A2626;padding:12px 14px;border-radius:10px;font-size:13px;z-index:99;';
+    document.body.appendChild(n);
+    setTimeout(()=>n.remove(), 3800);
+  }
+
+  /* ============ Control point ============ */
+  function buildSpeedCmd(kmh){
+    const v=Math.round(kmh*100);
+    return [OP.SET_SPEED, v & 0xff, (v>>8)&0xff];
+  }
+  function buildInclineCmd(pct){
+    let v=Math.round(pct*10);
+    if(v<0) v = 0x10000+v; // sint16 two's complement
+    return [OP.SET_INCLINE, v & 0xff, (v>>8)&0xff];
+  }
+
+  function sendControl(bytes){
+    controlQueue = controlQueue.then(()=>_sendControlOne(bytes));
+    return controlQueue;
+  }
+  function _sendControlOne(bytes){
+    return new Promise((resolve)=>{
+      if(!chControl){ resolve(false); return; }
+      const arr = new Uint8Array(bytes);
+      let settled=false;
+      const timeout = setTimeout(()=>{ if(!settled){ settled=true; pendingResolve=null; resolve(false); } }, 2500);
+      pendingResolve = (ok)=>{
+        if(settled) return;
+        settled=true;
+        clearTimeout(timeout);
+        pendingResolve=null;
+        resolve(ok);
+      };
+      const writer = chControl.writeValueWithResponse ? chControl.writeValueWithResponse(arr) : chControl.writeValue(arr);
+      writer.catch(()=>{ if(!settled){ settled=true; clearTimeout(timeout); pendingResolve=null; resolve(false); } });
+    });
+  }
+  function onControlResponse(ev){
+    const dv = ev.target.value;
+    if(dv.byteLength>=3 && dv.getUint8(0)===OP.RESPONSE){
+      const result = dv.getUint8(2);
+      if(pendingResolve) pendingResolve(result===0x01);
+    }
+  }
+
+  /* ============ Treadmill data parsing ============ */
+  function onTreadmillData(ev){
+    const dv = ev.target.value;
+    let off=0;
+    const flags = dv.getUint16(off,true); off+=2;
+    const out={};
+    if(!(flags & 0x0001)){ out.speed = dv.getUint16(off,true)/100; off+=2; }
+    if(flags & 0x0002){ off+=2; } // avg speed, skip
+    if(flags & 0x0004){
+      out.distance = dv.getUint8(off) | (dv.getUint8(off+1)<<8) | (dv.getUint8(off+2)<<16); off+=3;
+    }
+    if(flags & 0x0008){ out.incline = dv.getInt16(off,true)/10; off+=2; off+=2; } // incline + ramp angle
+    if(flags & 0x0010){ off+=4; } // elevation gain
+    if(flags & 0x0020){ off+=1; } // inst pace
+    if(flags & 0x0040){ off+=1; } // avg pace
+    if(flags & 0x0080){
+      if(off+2<=dv.byteLength){ out.energy = dv.getUint16(off,true); off+=2; }
+      if(off+2<=dv.byteLength){ off+=2; } // per hour
+      if(off+1<=dv.byteLength){ off+=1; } // per min
+    }
+    if(flags & 0x0100){ if(off+1<=dv.byteLength){ out.heartRate=dv.getUint8(off); off+=1; } }
+    if(flags & 0x0200){ off+=1; } // MET
+    if(flags & 0x0400){ if(off+2<=dv.byteLength){ out.elapsed=dv.getUint16(off,true); off+=2; } }
+
+    applyLiveData(out);
+  }
+
+  function applyLiveData(d){
+    if(d.speed!=null){ $('liveSpeed').textContent = d.speed.toFixed(1); lastLive.speed=d.speed; }
+    if(d.distance!=null){ $('liveDist').textContent = (d.distance/1000).toFixed(2); lastLive.distance=d.distance; }
+    if(d.energy!=null){ $('liveCal').textContent = d.energy; lastLive.energy=d.energy; }
+    if(d.incline!=null){ lastLive.incline=d.incline; }
+    if(session && session.running){
+      const t = Math.round((Date.now()-session.startedAt-session.pausedTotal)/1000);
+      if(d.speed!=null){
+        session.samples.push({ t, speed:d.speed, distance: d.distance!=null? d.distance/1000 : null, incline: lastLive.incline });
+      }
+      if(d.speed!=null) session.maxSpeed = Math.max(session.maxSpeed||0, d.speed);
+    }
+  }
+  let lastLive = {};
+
+  /* ============ session timer / scheduler ============ */
+  function startSessionTimer(){
+    if(sessionTimer) clearInterval(sessionTimer);
+    sessionTimer = setInterval(tick, 1000);
+  }
+  function stopSessionTimer(){
+    if(sessionTimer){ clearInterval(sessionTimer); sessionTimer=null; }
+  }
+
+  function tick(){
+    if(!session || !session.running) return;
+    const elapsed = (Date.now()-session.startedAt-session.pausedTotal)/1000;
+    $('liveTime').textContent = fmtTime(elapsed);
+
+    const prog = session.program;
+    if(prog && prog.segments){
+      let acc=0, idx=-1, segStart=0;
+      for(let i=0;i<prog.segments.length;i++){
+        const seg=prog.segments[i];
+        if(elapsed < acc+seg.duration){ idx=i; segStart=acc; break; }
+        acc+=seg.duration;
+      }
+      if(idx===-1){
+        // program finished
+        finishSession();
+        return;
+      }
+      if(idx!==segmentStartIdx){
+        segmentStartIdx=idx;
+        const seg=prog.segments[idx];
+        sendControl(buildSpeedCmd(seg.speed));
+        sendControl(buildInclineCmd(seg.incline));
+      }
+      const seg=prog.segments[idx];
+      const segElapsed = elapsed-segStart;
+      const segLeft = seg.duration-segElapsed;
+      $('segNowLabel').textContent = `${seg.label} · ${seg.speed}km/h · ${seg.incline}%`;
+      $('segTimeLeft').textContent = fmtTime(segLeft);
+      $('segFill').style.width = Math.min(100,(segElapsed/seg.duration*100))+'%';
+      $('segTotalTime').textContent = `${fmtTime(elapsed)} / ${fmtTime(prog.totalSec)}`;
+      const nextSeg = prog.segments[idx+1];
+      $('segNextLabel').textContent = nextSeg ? `接下來：${nextSeg.label} · ${nextSeg.speed}km/h` : '接下來：緩和結束';
+    }
+  }
+
+  /* ============ workout flow ============ */
+  function renderProgramList(){
+    const host = $('programList');
+    host.innerHTML='';
+    PROGRAMS.forEach(p=>{
+      const el=document.createElement('div');
+      el.className='program-item'+(p.id===selectedProgramId?' selected':'');
+      const lenText = p.totalSec ? fmtTime(p.totalSec) : '手動';
+      el.innerHTML = `<div class="radio"></div><div class="info" style="flex:1;"><div class="t">${p.name}</div><div class="d">${p.desc}</div></div><div class="len">${lenText}</div>`;
+      el.addEventListener('click', ()=>{ selectedProgramId=p.id; renderProgramList(); });
+      host.appendChild(el);
+    });
+  }
+
+  function beginWorkout(){
+    const prog = PROGRAMS.find(p=>p.id===selectedProgramId);
+    session = {
+      id: uid(),
+      date: todayStr(),
+      program: prog.id==='free' ? null : prog,
+      programName: prog.name,
+      startedAt: Date.now(),
+      pausedTotal: 0,
+      running: true,
+      samples: [],
+      maxSpeed: 0,
+    };
+    segmentStartIdx=-1;
+    lastLive={};
+
+    $('wo-picker').style.display='none';
+    $('wo-live').style.display='block';
+    $('wo-summary').style.display='none';
+    $('liveModeLabel').textContent = prog.name;
+    $('liveSpeed').textContent='0.0';
+    $('liveDist').textContent='0.00';
+    $('liveTime').textContent='00:00';
+    $('liveCal').textContent='--';
+
+    if(prog.segments){
+      $('segmentBar').style.display='block';
+      $('manualControls').style.display='none';
+      const seg0=prog.segments[0];
+      sendControl(buildSpeedCmd(seg0.speed));
+      sendControl(buildInclineCmd(seg0.incline));
+    }else{
+      $('segmentBar').style.display='none';
+      $('manualControls').style.display='flex';
+      $('spdVal').textContent = manualSpeed.toFixed(1);
+      $('incVal').textContent = manualIncline.toFixed(1);
+      sendControl(buildSpeedCmd(manualSpeed));
+      sendControl(buildInclineCmd(manualIncline));
+    }
+
+    sendControl([OP.START]);
+    startSessionTimer();
+    $('pauseBtn').textContent='暫停';
+  }
+
+  let isPaused=false, pauseStartedAt=null;
+  function togglePause(){
+    if(!session) return;
+    if(!isPaused){
+      isPaused=true;
+      pauseStartedAt=Date.now();
+      sendControl([OP.STOP,0x02]);
+      $('pauseBtn').textContent='繼續';
+    }else{
+      isPaused=false;
+      session.pausedTotal += (Date.now()-pauseStartedAt);
+      sendControl([OP.START]);
+      $('pauseBtn').textContent='暫停';
+    }
+  }
+
+  function finishSession(){
+    if(!session) return;
+    session.running=false;
+    stopSessionTimer();
+    sendControl([OP.STOP,0x01]);
+
+    session.endedAt = Date.now();
+    session.durationSec = Math.round((session.endedAt-session.startedAt-session.pausedTotal)/1000);
+    session.distanceKm = lastLive.distance!=null ? lastLive.distance/1000 : (session.samples.length ? (session.samples[session.samples.length-1].distance||0) : 0);
+    session.calories = lastLive.energy!=null ? lastLive.energy : null;
+    session.avgSpeed = session.durationSec>0 ? (session.distanceKm/(session.durationSec/3600)) : 0;
+
+    saveSession(session).then(refreshHome).then(refreshHistory);
+
+    $('wo-live').style.display='none';
+    showSummary(session);
+  }
+
+  function showSummary(s){
+    $('wo-summary').style.display='block';
+    $('sumDuration').textContent = fmtTime(s.durationSec);
+    $('sumDistance').textContent = s.distanceKm.toFixed(2);
+    $('sumAvgSpeed').textContent = s.avgSpeed.toFixed(1)+' km/h';
+    $('sumCal').textContent = s.calories!=null ? s.calories : '—';
+    renderChart($('chartHost'), s.samples);
+  }
+
+  /* ============ chart ============ */
+  function renderChart(host, samples){
+    host.innerHTML='';
+    if(!samples || samples.length<2){
+      host.innerHTML = '<div class="empty-note">資料不足，無法畫出曲線</div>';
+      return;
+    }
+    const W=520,H=160,pad=8;
+    const maxT = samples[samples.length-1].t || 1;
+    const speeds = samples.map(p=>p.speed||0);
+    const maxS = Math.max(1, Math.max(...speeds));
+    const pts = samples.map(p=>{
+      const x = pad + (p.t/maxT)*(W-2*pad);
+      const y = H-pad - ((p.speed||0)/maxS)*(H-2*pad);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    const areaPts = `${pad},${H-pad} ${pts} ${W-pad},${H-pad}`;
+    const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <polygon points="${areaPts}" fill="#FF8A3D22"></polygon>
+      <polyline points="${pts}" fill="none" stroke="#FF8A3D" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
+    </svg>
+    <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint); margin-top:6px;">
+      <span>0:00</span><span>最高 ${maxS.toFixed(1)} km/h</span><span>${fmtTime(maxT)}</span>
+    </div>`;
+    host.innerHTML = svg;
+  }
+
+  /* ============ persistence ============ */
+  async function initDB(){
+    try{
+      if(window.claude && window.claude.use){
+        dbNS = await window.claude.use('db');
+      }
+    }catch(e){ dbNS=null; }
+  }
+
+  async function saveSession(s){
+    const body = JSON.parse(JSON.stringify(s)); // drop functions, ensure plain
+    if(dbNS){
+      try{ await dbNS.collection('sessions').doc(s.id).set(body); return; }catch(e){ console.warn('db save failed', e); }
+    }
+    try{
+      const all = JSON.parse(localStorage.getItem(LS_KEY)||'{}');
+      all[s.id]=body;
+      localStorage.setItem(LS_KEY, JSON.stringify(all));
+    }catch(e){}
+  }
+
+  async function loadAllSessions(){
+    if(dbNS){
+      try{
+        const snap = await dbNS.collection('sessions').orderBy('startedAt','desc').limit(200).get();
+        return snap.docs.map(d=>d.data());
+      }catch(e){ console.warn('db load failed', e); }
+    }
+    try{
+      const all = JSON.parse(localStorage.getItem(LS_KEY)||'{}');
+      return Object.values(all).sort((a,b)=>b.startedAt-a.startedAt);
+    }catch(e){ return []; }
+  }
+
+  /* ============ home / calendar ============ */
+  let allSessionsCache = [];
+
+  async function refreshHome(){
+    allSessionsCache = await loadAllSessions();
+    const now = new Date();
+    const y=now.getFullYear(), m=now.getMonth();
+    const monthSessions = allSessionsCache.filter(s=>{
+      const d=new Date(s.startedAt); return d.getFullYear()===y && d.getMonth()===m;
+    });
+    const totalMin = Math.round(monthSessions.reduce((a,s)=>a+(s.durationSec||0),0)/60);
+    $('monthMinutes').textContent = totalMin+' 分鐘';
+    $('monthCount').textContent = monthSessions.length ? `本月共 ${monthSessions.length} 次運動` : '本月尚無紀錄';
+    $('monthLabel').textContent = `${y}年${m+1}月`;
+
+    renderCalendar(y,m,monthSessions);
+
+    const recentHost = $('recentList');
+    if(!allSessionsCache.length){
+      recentHost.innerHTML = '<div class="empty-note">還沒有運動紀錄</div>';
+    }else{
+      recentHost.innerHTML='';
+      allSessionsCache.slice(0,4).forEach(s=>recentHost.appendChild(historyRow(s)));
+    }
+  }
+
+  function renderCalendar(y,m,monthSessions){
+    const grid=$('calGrid');
+    grid.innerHTML='';
+    ['日','一','二','三','四','五','六'].forEach(d=>{
+      const el=document.createElement('div'); el.className='cal-dow'; el.textContent=d; grid.appendChild(el);
+    });
+    const minByDay = {};
+    monthSessions.forEach(s=>{
+      const day = new Date(s.startedAt).getDate();
+      minByDay[day] = (minByDay[day]||0) + (s.durationSec||0)/60;
+    });
+    const firstDow = new Date(y,m,1).getDay();
+    const daysInMonth = new Date(y,m+1,0).getDate();
+    const todayD = new Date();
+    const isCurMonth = todayD.getFullYear()===y && todayD.getMonth()===m;
+
+    for(let i=0;i<firstDow;i++){ const e=document.createElement('div'); e.className='cal-cell empty'; grid.appendChild(e); }
+    for(let day=1; day<=daysInMonth; day++){
+      const el=document.createElement('div');
+      const mins = minByDay[day]||0;
+      let cls='cal-cell';
+      if(mins>0 && mins<15) cls+=' has1';
+      else if(mins>=15 && mins<30) cls+=' has2';
+      else if(mins>=30 && mins<50) cls+=' has3';
+      else if(mins>=50) cls+=' has4';
+      if(isCurMonth && day===todayD.getDate()) cls+=' today';
+      el.className=cls;
+      el.innerHTML = `<span class="n">${day}</span>`;
+      grid.appendChild(el);
+    }
+  }
+
+  function historyRow(s){
+    const el=document.createElement('div');
+    el.className='history-row';
+    const d=new Date(s.startedAt);
+    const dateStr = `${d.getMonth()+1}/${d.getDate()}`;
+    el.innerHTML = `<div><div class="m">${s.programName||'自由走'}</div><div class="d">${dateStr}</div></div><div class="stat">${fmtTime(s.durationSec||0)}</div>`;
+    el.addEventListener('click', ()=>openDetail(s));
+    return el;
+  }
+
+  async function refreshHistory(){
+    const host=$('fullHistoryList');
+    if(!allSessionsCache.length) allSessionsCache = await loadAllSessions();
+    if(!allSessionsCache.length){
+      host.innerHTML='<div class="empty-note">還沒有運動紀錄</div>';
+      return;
+    }
+    host.innerHTML='';
+    allSessionsCache.forEach(s=>host.appendChild(historyRow(s)));
+  }
+
+  function openDetail(s){
+    $('detailDate').textContent = new Date(s.startedAt).toLocaleDateString('zh-TW',{month:'long',day:'numeric'}) + ' · ' + (s.programName||'自由走');
+    $('detailStats').innerHTML = `
+      <div class="summary-stat"><div class="v">${fmtTime(s.durationSec||0)}</div><div class="l">時長</div></div>
+      <div class="summary-stat"><div class="v">${(s.distanceKm||0).toFixed(2)}</div><div class="l">距離 km</div></div>
+      <div class="summary-stat"><div class="v">${(s.avgSpeed||0).toFixed(1)} km/h</div><div class="l">平均速度</div></div>
+      <div class="summary-stat"><div class="v">${s.calories!=null?s.calories:'—'}</div><div class="l">大卡</div></div>
+    `;
+    renderChart($('detailChartHost'), s.samples||[]);
+    $('detailSaveHealthBtn').onclick = ()=>sendToHealth(s);
+    $('detailModal').classList.add('open');
+  }
+
+  /* ============ Apple Health via Shortcuts ============ */
+  function sendToHealth(s){
+    const settings = loadSettings();
+    const name = settings.shortcutName;
+    if(!name){
+      openSettings();
+      alertInline('請先在設定裡填入你的捷徑名稱');
+      return;
+    }
+    const payload = {
+      type:'Walking',
+      durationMin: Math.round((s.durationSec||0)/60),
+      distanceKm: Number((s.distanceKm||0).toFixed(2)),
+      calories: s.calories!=null ? s.calories : null,
+      date: s.date,
+    };
+    const text = encodeURIComponent(JSON.stringify(payload));
+    const url = `shortcuts://x-callback-url/run-shortcut?name=${encodeURIComponent(name)}&input=text&text=${text}`;
+    window.location.href = url;
+  }
+
+  /* ============ settings modal ============ */
+  function openSettings(){
+    const s=loadSettings();
+    $('shortcutNameInput').value = s.shortcutName || '';
+    $('settingsModal').classList.add('open');
+  }
+  function closeSettings(){
+    const name = $('shortcutNameInput').value.trim();
+    saveSettings({ shortcutName: name });
+    $('settingsModal').classList.remove('open');
+  }
+
+  const SHORTCUT_GUIDE = `1. 打開「捷徑」App → 右上角「+」新增捷徑\n2. 把捷徑命名為你等一下要填在上面欄位的名字（例如「DD05記錄」）\n3. 加入動作「從輸入取得文字」(Get Text from Input)\n4. 加入動作「從輸入取得字典」(Get Dictionary from Input)，輸入選「文字」的輸出\n5. 加入動作「記錄健身紀錄」(Log Workout)：\n   - 運動類型：步行\n   - 時長：選「字典值」→ 鍵名 durationMin，單位選分鐘\n   - 距離：選「字典值」→ 鍵名 distanceKm，單位選公里\n   - 主動消耗熱量：選「字典值」→ 鍵名 calories\n6. 存檔即可，之後在這個網頁按「存入 Apple 健康」會自動跳出捷徑幫你寫入`;
+
+  /* ============ nav / view switching ============ */
+  function switchView(name){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    $('view-'+name).classList.add('active');
+    document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
+    if(name==='home') refreshHome();
+    if(name==='history') refreshHistory();
+  }
+
+  /* ============ wire up ============ */
+  document.querySelectorAll('nav.bottom button').forEach(b=>{
+    b.addEventListener('click', ()=>switchView(b.dataset.view));
+  });
+  $('goWorkoutBtn').addEventListener('click', ()=>switchView('workout'));
+  $('connectBtn').addEventListener('click', connect);
+  $('startWorkoutBtn').addEventListener('click', beginWorkout);
+  $('pauseBtn').addEventListener('click', togglePause);
+  $('stopBtn').addEventListener('click', finishSession);
+  $('doneSummaryBtn').addEventListener('click', ()=>{ $('wo-summary').style.display='none'; $('wo-picker').style.display='block'; switchView('home'); });
+  $('saveHealthBtn').addEventListener('click', ()=>sendToHealth(session));
+
+  $('settingsBtn').addEventListener('click', openSettings);
+  $('closeSettingsBtn').addEventListener('click', closeSettings);
+  $('settingsModal').addEventListener('click', (e)=>{ if(e.target.id==='settingsModal') closeSettings(); });
+  $('showShortcutGuide').addEventListener('click', ()=>{
+    const box=$('shortcutGuideBox');
+    box.style.display = box.style.display==='none' ? 'block' : 'none';
+    box.style.whiteSpace='pre-line';
+    box.textContent = SHORTCUT_GUIDE;
+  });
+  $('disconnectBtn').addEventListener('click', ()=>{
+    if(device && device.gatt && device.gatt.connected) device.gatt.disconnect();
+    closeSettings();
+  });
+  $('detailModal').addEventListener('click', (e)=>{ if(e.target.id==='detailModal') $('detailModal').classList.remove('open'); });
+  $('closeDetailBtn').addEventListener('click', ()=>$('detailModal').classList.remove('open'));
+
+  $('spdUp').addEventListener('click', ()=>{ manualSpeed=Math.min(16,manualSpeed+0.5); $('spdVal').textContent=manualSpeed.toFixed(1); sendControl(buildSpeedCmd(manualSpeed)); });
+  $('spdDown').addEventListener('click', ()=>{ manualSpeed=Math.max(0.5,manualSpeed-0.5); $('spdVal').textContent=manualSpeed.toFixed(1); sendControl(buildSpeedCmd(manualSpeed)); });
+  $('incUp').addEventListener('click', ()=>{ manualIncline=Math.min(15,manualIncline+0.5); $('incVal').textContent=manualIncline.toFixed(1); sendControl(buildInclineCmd(manualIncline)); });
+  $('incDown').addEventListener('click', ()=>{ manualIncline=Math.max(0,manualIncline-0.5); $('incVal').textContent=manualIncline.toFixed(1); sendControl(buildInclineCmd(manualIncline)); });
+
+  /* ============ init ============ */
+  (async function init(){
+    if(!navigator.bluetooth) $('noBleWarn').style.display='block';
+    await initDB();
+    renderProgramList();
+    refreshHome();
+  })();
+
+})();
+</script>
+</body>
+</html>
