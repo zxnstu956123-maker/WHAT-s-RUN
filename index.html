@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>What's Runnnn 花枝浪</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="花枝浪">
+<meta name="theme-color" content="#F6F1E9">
+<link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -51,7 +56,7 @@
 
   header.top{
     display:flex; align-items:center; justify-content:space-between;
-    padding:18px 18px 14px;
+    padding:calc(env(safe-area-inset-top, 0px) + 18px) 18px 14px;
     position:sticky; top:0; z-index:10;
     background:rgba(246,241,233,.82);
     backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
@@ -130,7 +135,7 @@
   .goal-ring .fill{fill:none; stroke:var(--accent); stroke-width:9; stroke-linecap:round; stroke-dasharray:263.9; stroke-dashoffset:263.9; transition:stroke-dashoffset .5s ease;}
   .goal-ring-text{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:15px; color:var(--text);}
   .goal-ring-text small{font-size:10px; color:var(--text-dim); font-weight:500; margin-left:1px;}
-  .goal-mascot{width:52px; height:52px; flex-shrink:0;}
+  .goal-mascot{width:76px; height:76px; flex-shrink:0;}
   .goal-mascot.sm{width:34px; height:34px;}
   .card h2 .goal-mascot{vertical-align:middle; margin-left:6px;}
   .goal-info{flex:1;}
@@ -988,6 +993,7 @@
     session.distanceKm = lastLive.distance!=null ? lastLive.distance/1000 : (session.samples.length ? (session.samples[session.samples.length-1].distance||0) : 0);
     session.calories = lastLive.energy!=null ? lastLive.energy : null;
     session.avgSpeed = session.durationSec>0 ? (session.distanceKm/(session.durationSec/3600)) : 0;
+    session.steps = Math.round((session.distanceKm||0)*1000/STEP_STRIDE_M);
 
     await saveSession(session);
     await refreshHome();
@@ -1223,12 +1229,13 @@
       durationMin: Math.round((s.durationSec||0)/60),
       distanceKm: Number((s.distanceKm||0).toFixed(2)),
       calories: s.calories!=null ? Math.round(s.calories) : 0,
+      steps: s.steps!=null ? s.steps : Math.round((s.distanceKm||0)*1000/STEP_STRIDE_M),
       date: s.date,
     };
     const text = encodeURIComponent(JSON.stringify(payload));
     const url = `shortcuts://x-callback-url/run-shortcut?name=${encodeURIComponent(name)}&input=text&text=${text}`;
     console.log('[sendToHealth] payload', payload, 'url', url);
-    alertInline(`送出捷徑「${name}」：${payload.durationMin}分 / ${payload.distanceKm}km / ${payload.calories}大卡`, 4500);
+    alertInline(`送出捷徑「${name}」：${payload.durationMin}分 / ${payload.distanceKm}km / ${payload.calories}大卡 / 約${payload.steps}步`, 4500);
     window.location.href = url;
   }
 
@@ -1271,7 +1278,7 @@
     refreshHome();
   }
 
-  const SHORTCUT_GUIDE = `1. 打開「捷徑」App → 右上角「+」新增捷徑\n2. 把捷徑命名為你等一下要填在上面欄位的名字（例如「DD05記錄」）\n3. 加入動作「從輸入取得字典」(Get Dictionary from Input)\n4. 加入動作「記錄健身紀錄」(Log Workout)：\n   - 運動類型：步行\n   - 持續時間：點欄位插入「辭典」變數 → 選鍵 durationMin，單位選分鐘\n   - 距離：點欄位插入「辭典」變數 → 選鍵 distanceKm，單位選公里\n   - 熱量：點欄位插入「辭典」變數 → 選鍵 calories\n5. 存檔即可，之後在這個網頁按「存入 Apple 健康」會自動跳出捷徑幫你寫入`;
+  const SHORTCUT_GUIDE = `1. 打開「捷徑」App → 右上角「+」新增捷徑\n2. 把捷徑命名為你等一下要填在上面欄位的名字（例如「DD05記錄」）\n3. 加入動作「從輸入取得字典」(Get Dictionary from Input)\n4. 加入動作「記錄健身紀錄」(Log Workout)：\n   - 運動類型：步行\n   - 持續時間：點欄位插入「辭典」變數 → 選鍵 durationMin，單位選分鐘\n   - 距離：點欄位插入「辭典」變數 → 選鍵 distanceKm，單位選公里\n   - 熱量：點欄位插入「辭典」變數 → 選鍵 calories\n5. 想順便把步數也寫進健康App的話，再加一個動作「記錄健康樣本」(Log Health Sample)：\n   - 樣本類型：步數\n   - 數值：點欄位插入「辭典」變數 → 選鍵 steps\n   - 日期：目前的日期\n   （這裡的步數是用距離換算估計出來的，不是機器實測的精確值）\n6. 存檔即可，之後在這個網頁按「存入 Apple 健康」會自動跳出捷徑幫你寫入`;
 
   /* ============ nav / view switching ============ */
   function switchView(name){
