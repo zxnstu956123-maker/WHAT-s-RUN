@@ -3,61 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>DD05 控制台</title>
+<title>What's Runnnn 花枝浪</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#12161B;
-    --surface:#1B2129;
-    --surface-2:#222A33;
-    --border:#2C3640;
-    --text:#EDEFF1;
-    --text-dim:#8C97A3;
-    --text-faint:#5B6672;
+    --bg:#F6F1E9;
+    --surface:#FFFFFF;
+    --surface-2:#F3ECE1;
+    --border:#EAE0D1;
+    --text:#241D14;
+    --text-dim:#8B8074;
+    --text-faint:#BBAF9F;
     --accent:#FF8A3D;
-    --accent-dim:#7A4A28;
-    --teal:#4FD1C5;
-    --danger:#FF5D5D;
-    --radius:14px;
+    --accent-dim:#FFE7D2;
+    --teal:#1E9C8B;
+    --teal-bg:#DFF5F0;
+    --danger:#E1524F;
+    --danger-bg:#FCE2E1;
+    --radius:20px;
+    --shadow:0 6px 20px rgba(60,40,15,.08);
+    --shadow-sm:0 2px 10px rgba(60,40,15,.06);
+    --badge-blue-bg:#E4EDFF; --badge-blue:#3E72E0;
+    --badge-green-bg:#E1F5E8; --badge-green:#1FAA59;
+    --badge-orange-bg:#FFE7D2; --badge-orange:#FF8A3D;
+    --badge-red-bg:#FCE2E1; --badge-red:#E1524F;
+    --badge-purple-bg:#ECE3FF; --badge-purple:#7C5CE0;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0; padding:0; background:var(--bg); color:var(--text); overscroll-behavior-y:none;}
+  html,body{margin:0; padding:0; color:var(--text); overscroll-behavior-y:none;}
   body{
     font-family:'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
     font-size:15px;
     line-height:1.5;
     padding-bottom:78px;
     min-height:100vh;
+    background:
+      radial-gradient(ellipse 900px 460px at 50% -8%, #FFDFC0 0%, rgba(255,223,192,0) 65%),
+      var(--bg);
   }
   .mono{font-family:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;}
   h1,h2,h3{margin:0; font-weight:600;}
   button{font-family:inherit; border:none; cursor:pointer;}
   button:focus-visible, a:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  svg{display:block;}
 
   header.top{
     display:flex; align-items:center; justify-content:space-between;
     padding:18px 18px 14px;
-    position:sticky; top:0; background:var(--bg); z-index:10;
-    border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:10;
+    background:rgba(246,241,233,.82);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
   }
-  header.top h1{font-size:18px; letter-spacing:0.2px;}
+  header.top h1{font-size:17px; letter-spacing:0.2px; color:var(--text);}
   .status-pill{
     display:flex; align-items:center; gap:6px;
     padding:6px 12px; border-radius:99px;
-    background:var(--surface); border:1px solid var(--border);
+    background:var(--surface); box-shadow:var(--shadow-sm);
     font-size:12.5px; color:var(--text-dim);
   }
   .status-pill .dot{width:7px; height:7px; border-radius:50%; background:var(--text-faint);}
-  .status-pill.connected{color:var(--teal); border-color:#2A4A48;}
+  .status-pill.connected{color:var(--teal);}
   .status-pill.connected .dot{background:var(--teal); box-shadow:0 0 6px var(--teal);}
   .status-pill.connecting .dot{background:var(--accent); animation:pulse 1s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
   .icon-btn{
-    background:none; color:var(--text-dim); padding:6px; border-radius:8px; font-size:18px; line-height:1;
+    background:none; color:var(--text-dim); padding:6px; border-radius:8px; line-height:1;
   }
-  .icon-btn:active{background:var(--surface);}
+  .icon-btn svg{width:20px; height:20px;}
+  .icon-btn:active{background:var(--surface-2);}
 
   main{padding:18px; max-width:520px; margin:0 auto;}
   .view{display:none;}
@@ -65,32 +80,67 @@
   @keyframes fadein{from{opacity:0; transform:translateY(4px);}to{opacity:1; transform:translateY(0);}}
 
   .card{
-    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
-    padding:18px; margin-bottom:14px;
+    background:var(--surface); box-shadow:var(--shadow); border-radius:var(--radius);
+    padding:20px; margin-bottom:14px;
   }
   .card h2{font-size:14px; color:var(--text-dim); font-weight:500; margin-bottom:12px;}
 
-  /* ---- Home / calendar ---- */
+  /* ---- badges (shared) ---- */
+  .badge-color-blue{background:var(--badge-blue-bg); color:var(--badge-blue);}
+  .badge-color-green{background:var(--badge-green-bg); color:var(--badge-green);}
+  .badge-color-orange{background:var(--badge-orange-bg); color:var(--badge-orange);}
+  .badge-color-red{background:var(--badge-red-bg); color:var(--badge-red);}
+  .badge-color-purple{background:var(--badge-purple-bg); color:var(--badge-purple);}
+  .badge-sm{width:20px; height:20px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .badge-sm svg{width:11px; height:11px;}
+
+  /* ---- stat tiles (live / summary) ---- */
+  .stat-tile{background:var(--surface); border-radius:16px; padding:12px; box-shadow:var(--shadow-sm); text-align:left;}
+  .stat-tile .top{display:flex; align-items:center; gap:6px; margin-bottom:8px;}
+  .stat-tile .l{font-size:10.5px; color:var(--text-dim);}
+  .stat-tile .v{font-weight:700; color:var(--text);}
+
+  /* ---- segmented toggle (shared: goal type / duration group / free-walk goal) ---- */
+  .seg-toggle{display:flex; gap:6px; background:var(--surface-2); padding:4px; border-radius:12px;}
+  .seg-btn{flex:1; padding:9px 0; border-radius:9px; background:none; color:var(--text-dim); font-size:13px; font-weight:600;}
+  .seg-btn.active{background:var(--surface); color:var(--text); box-shadow:var(--shadow-sm);}
+
+  /* ---- Home / goal ---- */
   .month-summary{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px;}
   .month-summary .big{font-size:26px; font-weight:700;}
   .month-summary .sub{color:var(--text-dim); font-size:13px;}
   .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:5px;}
   .cal-dow{font-size:11px; color:var(--text-faint); text-align:center; padding-bottom:4px;}
   .cal-cell{
-    aspect-ratio:1; border-radius:7px; display:flex; align-items:center; justify-content:center;
+    aspect-ratio:1; border-radius:9px; display:flex; align-items:center; justify-content:center;
     font-size:11px; color:var(--text-dim); background:var(--surface-2); position:relative;
   }
   .cal-cell.empty{background:transparent;}
-  .cal-cell.today{box-shadow:inset 0 0 0 1.5px var(--accent);}
+  .cal-cell.today{box-shadow:inset 0 0 0 1.5px var(--accent); font-weight:700; color:var(--text);}
   .cal-cell .n{position:relative; z-index:1;}
-  .cal-cell.has1{background:#3A2E22;}
-  .cal-cell.has2{background:#5A3D20;}
-  .cal-cell.has3{background:#8A4E1E;}
-  .cal-cell.has4{background:var(--accent); color:#1B1206;}
+  .cal-cell.has1{background:#FFE7D2; color:#A85A1E;}
+  .cal-cell.has2{background:#FFCFA0; color:#8A3F0A;}
+  .cal-cell.has3{background:#FFAD66; color:#5C2600;}
+  .cal-cell.has4{background:var(--accent); color:#3A1900;}
+
+  .goal-row{display:flex; align-items:center; gap:14px;}
+  .goal-ring-wrap{position:relative; width:72px; height:72px; flex-shrink:0;}
+  .goal-ring{width:100%; height:100%; transform:rotate(-90deg);}
+  .goal-ring .track{fill:none; stroke:var(--surface-2); stroke-width:9;}
+  .goal-ring .fill{fill:none; stroke:var(--accent); stroke-width:9; stroke-linecap:round; stroke-dasharray:263.9; stroke-dashoffset:263.9; transition:stroke-dashoffset .5s ease;}
+  .goal-ring-text{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:15px; color:var(--text);}
+  .goal-ring-text small{font-size:10px; color:var(--text-dim); font-weight:500; margin-left:1px;}
+  .goal-mascot{width:52px; height:52px; flex-shrink:0;}
+  .goal-mascot.sm{width:34px; height:34px;}
+  .card h2 .goal-mascot{vertical-align:middle; margin-left:6px;}
+  .goal-info{flex:1;}
+  .goal-info .t{font-weight:700; font-size:14.5px; margin-bottom:3px;}
+  .goal-info .d{font-size:12.5px; color:var(--text-dim); line-height:1.5;}
+  .goal-info .d.met{color:var(--badge-green); font-weight:600;}
 
   .cta-start{
-    width:100%; padding:16px; border-radius:var(--radius); background:var(--accent); color:#1B1206;
-    font-size:16px; font-weight:700; margin-top:4px;
+    width:100%; padding:16px; border-radius:var(--radius); background:var(--accent); color:#2E1400;
+    font-size:16px; font-weight:700; margin-top:4px; box-shadow:0 8px 20px rgba(255,138,61,.35);
   }
   .cta-start:active{opacity:.85;}
 
@@ -106,44 +156,51 @@
 
   /* ---- Connect ---- */
   .connect-box{text-align:center; padding:26px 18px;}
-  .connect-box .glyph{font-size:34px; margin-bottom:10px;}
+  .connect-box .glyph{margin:0 auto 10px; width:36px; height:36px; color:var(--accent);}
+  .connect-box .glyph svg{width:36px; height:36px;}
   .connect-box p{color:var(--text-dim); font-size:13.5px; margin:8px 0 18px;}
   .btn-primary{
-    padding:14px 26px; border-radius:12px; background:var(--accent); color:#1B1206; font-weight:700; font-size:15px;
+    padding:14px 26px; border-radius:12px; background:var(--accent); color:#2E1400; font-weight:700; font-size:15px;
   }
   .btn-secondary{
-    padding:13px 22px; border-radius:12px; background:var(--surface-2); color:var(--text); font-weight:600; font-size:14px; border:1px solid var(--border);
+    padding:13px 22px; border-radius:12px; background:var(--surface-2); color:var(--text); font-weight:600; font-size:14px;
   }
   .warn-box{
-    background:#2A2118; border:1px solid #4A3420; color:#E8B978; border-radius:10px; padding:12px 14px; font-size:12.5px; margin-top:14px; text-align:left;
+    background:#FFF3E0; border:1px solid #FFD9A0; color:#8A5310; border-radius:10px; padding:12px 14px; font-size:12.5px; margin-top:14px; text-align:left;
   }
 
   /* ---- Program picker ---- */
   .program-item{
-    display:flex; justify-content:space-between; align-items:center; gap:10px;
-    padding:14px; border-radius:12px; background:var(--surface-2); border:1.5px solid var(--border);
-    margin-bottom:10px;
+    display:flex; align-items:center; gap:12px;
+    padding:14px; border-radius:16px; background:var(--surface); box-shadow:var(--shadow-sm);
+    margin-bottom:10px; border:1.5px solid transparent;
   }
-  .program-item.selected{border-color:var(--accent); background:#241C13;}
-  .program-item .info .t{font-weight:600; font-size:14.5px;}
+  .program-item.selected{border-color:var(--accent); background:var(--accent-dim); box-shadow:none;}
+  .p-icon{width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .p-icon svg{width:17px; height:17px;}
+  .program-item .info .t{font-weight:700; font-size:14.5px; color:var(--text);}
   .program-item .info .d{color:var(--text-dim); font-size:12px; margin-top:3px;}
-  .program-item .len{font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--text-dim); white-space:nowrap;}
+  .right-meta{display:flex; flex-direction:column; align-items:flex-end; gap:5px; flex-shrink:0;}
+  .type-tag{font-size:10.5px; font-weight:700; padding:4px 9px; border-radius:8px; white-space:nowrap;}
+  .len{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--text-dim); white-space:nowrap;}
   .radio{width:19px; height:19px; border-radius:50%; border:2px solid var(--text-faint); flex-shrink:0;}
   .program-item.selected .radio{border-color:var(--accent); background:radial-gradient(circle, var(--accent) 40%, transparent 42%);}
+  .goal-config{background:var(--surface); border-radius:16px; box-shadow:var(--shadow-sm); padding:14px; margin:-2px 0 10px;}
+  .goal-config .field-note{margin-top:8px;}
+  .goal-config input[type=number]{width:100%; padding:11px 13px; border-radius:10px; background:var(--surface-2); border:1.5px solid var(--border); color:var(--text); font-size:14px; font-family:'IBM Plex Mono',monospace;}
 
   /* ---- Live workout ---- */
   .live-hero{
     display:flex; flex-direction:column; align-items:center; padding:20px 0 6px;
   }
   .live-hero .label{color:var(--text-dim); font-size:12.5px;}
-  .live-hero .speed{font-family:'IBM Plex Mono',monospace; font-size:64px; font-weight:600; line-height:1; margin:6px 0;}
+  .live-hero .speed{font-family:'IBM Plex Mono',monospace; font-size:64px; font-weight:600; line-height:1; margin:6px 0; color:var(--text);}
   .live-hero .speed .unit{font-size:20px; color:var(--text-dim); margin-left:4px;}
+  .free-goal-note{text-align:center; font-size:12.5px; color:var(--text-dim); background:var(--surface-2); border-radius:10px; padding:8px 12px; margin:2px 0 4px;}
   .live-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px 0;}
-  .live-stat{background:var(--surface-2); border-radius:10px; padding:12px 8px; text-align:center;}
-  .live-stat .v{font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:600;}
-  .live-stat .l{font-size:10.5px; color:var(--text-dim); margin-top:3px;}
+  .live-grid .stat-tile .v{font-size:17px;}
   .segment-bar{
-    background:var(--surface-2); border-radius:10px; padding:12px 14px; margin:8px 0 16px;
+    background:var(--surface-2); border-radius:14px; padding:12px 14px; margin:8px 0 16px;
   }
   .segment-bar .row1{display:flex; justify-content:space-between; font-size:13px;}
   .segment-bar .row1 .now{color:var(--accent); font-weight:600;}
@@ -152,11 +209,11 @@
   .segment-bar .row2{display:flex; justify-content:space-between; font-size:11.5px; color:var(--text-faint);}
 
   .manual-controls{display:flex; gap:10px; margin-bottom:14px;}
-  .stepper{flex:1; background:var(--surface-2); border-radius:12px; padding:12px; text-align:center;}
+  .stepper{flex:1; background:var(--surface-2); border-radius:14px; padding:12px; text-align:center;}
   .stepper .l{font-size:11px; color:var(--text-dim); margin-bottom:6px;}
   .stepper .row{display:flex; align-items:center; justify-content:center; gap:10px;}
   .stepper button{
-    width:38px; height:38px; border-radius:10px; background:var(--surface); border:1px solid var(--border);
+    width:38px; height:38px; border-radius:10px; background:var(--surface); box-shadow:var(--shadow-sm);
     color:var(--text); font-size:18px; font-weight:600;
   }
   .stepper button:active{background:var(--border);}
@@ -164,28 +221,28 @@
 
   .control-row{display:flex; gap:10px;}
   .control-row button{flex:1; padding:15px; border-radius:12px; font-weight:700; font-size:14.5px;}
-  .btn-stop{background:var(--danger); color:#2A0505;}
-  .btn-pause{background:var(--surface-2); color:var(--text); border:1px solid var(--border);}
-  .btn-go{background:var(--accent); color:#1B1206;}
+  .control-row button:disabled{opacity:.5;}
+  .btn-stop{background:var(--danger); color:#3A0705;}
+  .btn-pause{background:var(--surface-2); color:var(--text);}
+  .btn-go{background:var(--accent); color:#2E1400;}
 
   /* ---- Summary ---- */
   .summary-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px;}
-  .summary-stat{background:var(--surface-2); border-radius:10px; padding:14px;}
-  .summary-stat .v{font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600;}
-  .summary-stat .l{font-size:11.5px; color:var(--text-dim); margin-top:4px;}
-  .chart-wrap{background:var(--surface-2); border-radius:10px; padding:12px; margin-bottom:16px;}
+  .summary-grid .stat-tile .v{font-size:21px;}
+  .chart-wrap{background:var(--surface-2); border-radius:14px; padding:12px; margin-bottom:16px;}
   .chart-wrap svg{width:100%; height:auto; display:block;}
   .health-btn{
-    width:100%; padding:15px; border-radius:12px; background:var(--surface-2); border:1.5px solid var(--teal);
+    width:100%; padding:15px; border-radius:12px; background:var(--teal-bg);
     color:var(--teal); font-weight:700; font-size:14.5px; margin-bottom:10px;
   }
-  .health-btn:active{background:#1A2E2B;}
+  .health-btn:active{opacity:.8;}
   .done-btn{width:100%; padding:13px; border-radius:12px; background:none; color:var(--text-dim); font-size:13.5px; border:1px solid var(--border);}
 
   /* ---- nav ---- */
   nav.bottom{
     position:fixed; bottom:0; left:0; right:0;
-    display:flex; background:var(--surface); border-top:1px solid var(--border);
+    display:flex; background:rgba(255,255,255,.9); box-shadow:0 -2px 16px rgba(60,40,15,.07);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
     padding:8px 6px calc(env(safe-area-inset-bottom) + 8px);
     z-index:20;
   }
@@ -193,23 +250,25 @@
     flex:1; background:none; color:var(--text-faint); display:flex; flex-direction:column; align-items:center; gap:3px;
     padding:6px 0; font-size:11px;
   }
-  nav.bottom button .ic{font-size:19px;}
-  nav.bottom button.active{color:var(--accent);}
+  nav.bottom button .ic{display:inline-flex; padding:5px 16px; border-radius:10px; transition:background .2s;}
+  nav.bottom button .ic svg{width:19px; height:19px;}
+  nav.bottom button.active{color:var(--accent); font-weight:600;}
+  nav.bottom button.active .ic{background:var(--accent-dim);}
 
   /* ---- modal ---- */
   .modal-backdrop{
-    position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:flex-end; z-index:50;
+    position:fixed; inset:0; background:rgba(30,20,10,.45); display:none; align-items:flex-end; z-index:50;
   }
   .modal-backdrop.open{display:flex;}
   .modal{
-    background:var(--surface); border-radius:20px 20px 0 0; padding:22px 20px calc(env(safe-area-inset-bottom) + 22px);
+    background:var(--surface); border-radius:22px 22px 0 0; padding:22px 20px calc(env(safe-area-inset-bottom) + 22px);
     width:100%; max-height:82vh; overflow-y:auto;
   }
   .modal h3{font-size:16px; margin-bottom:14px;}
   .field{margin-bottom:14px;}
   .field label{display:block; font-size:12.5px; color:var(--text-dim); margin-bottom:6px;}
-  .field input[type=text]{
-    width:100%; padding:12px 13px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border);
+  .field input[type=text], .field input[type=number]{
+    width:100%; padding:12px 13px; border-radius:10px; background:var(--surface); border:1.5px solid var(--border);
     color:var(--text); font-size:14px; font-family:inherit;
   }
   .field-note{font-size:11.5px; color:var(--text-faint); margin-top:6px; line-height:1.5;}
@@ -219,10 +278,10 @@
 <body>
 
 <header class="top">
-  <h1>DD05 控制台</h1>
+  <h1>What's Runnnn 花枝浪</h1>
   <div style="display:flex; align-items:center; gap:8px;">
     <div class="status-pill" id="statusPill"><span class="dot"></span><span id="statusText">未連線</span></div>
-    <button class="icon-btn" id="settingsBtn" aria-label="設定">⚙</button>
+    <button class="icon-btn" id="settingsBtn" aria-label="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M4.2 4.2l1.8 1.8M18 18l1.8 1.8M3 12h2.5M18.5 12H21M4.2 19.8L6 18M18 6l1.8-1.8"/></svg></button>
   </div>
 </header>
 
@@ -240,6 +299,24 @@
       </div>
       <div class="cal-grid" id="calGrid"></div>
     </div>
+
+    <div class="card" id="goalCard">
+      <div class="goal-row">
+        <div class="goal-ring-wrap">
+          <svg class="goal-ring" viewBox="0 0 100 100">
+            <circle class="track" cx="50" cy="50" r="42"></circle>
+            <circle class="fill" id="goalRingFill" cx="50" cy="50" r="42"></circle>
+          </svg>
+          <div class="goal-ring-text"><span id="goalRingCount">0</span><small id="goalRingTarget">/20</small></div>
+        </div>
+        <div class="goal-info">
+          <div class="t" id="goalCardTitle">麻麻の零用錢</div>
+          <div class="d" id="goalDesc">這個月才剛開始，麻麻加油！</div>
+        </div>
+        <img class="goal-mascot" id="goalMascot" src="squid-20.png" alt="花枝" style="display:none;">
+      </div>
+    </div>
+
     <button class="cta-start" id="goWorkoutBtn">開始運動</button>
 
     <div class="card" style="margin-top:14px;">
@@ -253,7 +330,7 @@
 
     <!-- not connected -->
     <div id="wo-connect" class="card connect-box">
-      <div class="glyph">📡</div>
+      <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10-5 4V3l5 4L7 17"/></svg></div>
       <h2 style="margin-bottom:0;">連線 DD05</h2>
       <p>透過藍牙直接連上走步機，資料只在你的手機跟機器之間傳輸，不經過任何雲端伺服器。</p>
       <button class="btn-primary" id="connectBtn">連接走步機</button>
@@ -265,8 +342,16 @@
     <!-- connected, picking mode -->
     <div id="wo-picker" style="display:none;">
       <div class="card">
+        <h2>自由走</h2>
+        <div id="freeWalkCard"></div>
+      </div>
+      <div class="card">
         <h2>選擇菜單</h2>
-        <div id="programList"></div>
+        <div class="seg-toggle" id="groupToggle">
+          <button type="button" data-val="short" class="seg-btn active">10-20分</button>
+          <button type="button" data-val="long" class="seg-btn">30-40分</button>
+        </div>
+        <div id="programList" style="margin-top:12px;"></div>
       </div>
       <button class="cta-start" id="startWorkoutBtn">開始</button>
     </div>
@@ -278,15 +363,16 @@
           <div class="label" id="liveModeLabel">自由走</div>
           <div class="speed mono"><span id="liveSpeed">0.0</span><span class="unit">km/h</span></div>
         </div>
+        <div class="free-goal-note" id="freeGoalLive" style="display:none;"></div>
         <div id="segmentBar" class="segment-bar" style="display:none;">
           <div class="row1"><span>目前：<span class="now" id="segNowLabel">—</span></span><span id="segTimeLeft">--:--</span></div>
           <div class="track"><div class="fill" id="segFill" style="width:0%;"></div></div>
           <div class="row2"><span id="segNextLabel">接下來：—</span><span id="segTotalTime">00:00 / 00:00</span></div>
         </div>
         <div class="live-grid">
-          <div class="live-stat"><div class="v mono" id="liveDist">0.00</div><div class="l">距離 km</div></div>
-          <div class="live-stat"><div class="v mono" id="liveTime">00:00</div><div class="l">時間</div></div>
-          <div class="live-stat"><div class="v mono" id="liveCal">--</div><div class="l">大卡</div></div>
+          <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.3 7-12a7 7 0 10-14 0c0 4.7 7 12 7 12z"/><circle cx="12" cy="9" r="2.2"/></svg></span><span class="l">距離 km</span></div><div class="v mono" id="liveDist">0.00</div></div>
+          <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.2 2"/></svg></span><span class="l">時間</span></div><div class="v mono" id="liveTime">00:00</div></div>
+          <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4.5-3 8.5a3 3 0 006 0c0-1.2-1-2-1-3 2 1.2 3 3.3 3 5.5a5 5 0 01-10 0C7 8.5 10 6 12 2z"/></svg></span><span class="l">大卡</span></div><div class="v mono" id="liveCal">--</div></div>
         </div>
 
         <div id="manualControls" class="manual-controls" style="display:none;">
@@ -294,7 +380,7 @@
             <div class="l">速度 km/h</div>
             <div class="row">
               <button id="spdDown">−</button>
-              <div class="val mono" id="spdVal">3.5</div>
+              <div class="val mono" id="spdVal">1.3</div>
               <button id="spdUp">+</button>
             </div>
           </div>
@@ -318,12 +404,12 @@
     <!-- summary -->
     <div id="wo-summary" style="display:none;">
       <div class="card">
-        <h2>本次運動</h2>
+        <h2>本次運動 <img class="goal-mascot sm" id="summaryMascot" src="squid-20.png" alt="花枝" style="display:none;"></h2>
         <div class="summary-grid">
-          <div class="summary-stat"><div class="v" id="sumDuration">--</div><div class="l">時長</div></div>
-          <div class="summary-stat"><div class="v" id="sumDistance">--</div><div class="l">距離 km</div></div>
-          <div class="summary-stat"><div class="v" id="sumAvgSpeed">--</div><div class="l">平均速度</div></div>
-          <div class="summary-stat"><div class="v" id="sumCal">--</div><div class="l">大卡</div></div>
+          <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.2 2"/></svg></span><span class="l">時長</span></div><div class="v" id="sumDuration">--</div></div>
+          <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.3 7-12a7 7 0 10-14 0c0 4.7 7 12 7 12z"/><circle cx="12" cy="9" r="2.2"/></svg></span><span class="l">距離 km</span></div><div class="v" id="sumDistance">--</div></div>
+          <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg></span><span class="l">平均速度</span></div><div class="v" id="sumAvgSpeed">--</div></div>
+          <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4.5-3 8.5a3 3 0 006 0c0-1.2-1-2-1-3 2 1.2 3 3.3 3 5.5a5 5 0 01-10 0C7 8.5 10 6 12 2z"/></svg></span><span class="l">大卡</span></div><div class="v" id="sumCal">--</div></div>
         </div>
         <div class="chart-wrap"><div id="chartHost"></div></div>
         <button class="health-btn" id="saveHealthBtn">存入 Apple 健康</button>
@@ -344,9 +430,9 @@
 </main>
 
 <nav class="bottom">
-  <button data-view="home" class="active"><span class="ic">🏠</span>首頁</button>
-  <button data-view="workout"><span class="ic">🏃</span>運動</button>
-  <button data-view="history"><span class="ic">📋</span>記錄</button>
+  <button data-view="home" class="active"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></span>首頁</button>
+  <button data-view="workout"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="4" r="2"/><path d="M6 21l2.5-6 3 2 1.5-4.5 4 2.5"/><path d="M9 15l-3.5 2.5"/></svg></span>運動</button>
+  <button data-view="history"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M9 3.5v2.2h6V3.5"/><path d="M8.2 11h7.6M8.2 14.6h7.6M8.2 7.4h4"/></svg></span>記錄</button>
 </nav>
 
 <!-- settings modal -->
@@ -360,11 +446,32 @@
     </div>
     <button class="link-btn" id="showShortcutGuide">怎麼設定這個捷徑？</button>
     <div id="shortcutGuideBox" style="display:none; margin-top:14px;" class="field-note"></div>
+
+    <div class="field" style="margin-top:20px;">
+      <label>目標卡片標題</label>
+      <input type="text" id="goalTitleInput" placeholder="麻麻の零用錢">
+    </div>
+    <div class="field">
+      <label>計算方式</label>
+      <div class="seg-toggle" id="goalTypeToggle">
+        <button type="button" data-val="count" class="seg-btn">次數</button>
+        <button type="button" data-val="minutes" class="seg-btn">分鐘數</button>
+      </div>
+    </div>
+    <div class="field">
+      <label id="goalTargetLabel">目標次數</label>
+      <input type="number" id="goalTargetInput" placeholder="20">
+    </div>
+    <div class="field">
+      <label>達成後的獎勵金額（純顯示用，不會自動轉帳）</label>
+      <input type="number" id="goalRewardInput" placeholder="1000">
+    </div>
+
     <div style="margin-top:20px; display:flex; gap:10px;">
       <button class="btn-secondary" id="disconnectBtn" style="flex:1;">中斷藍牙連線</button>
       <button class="btn-primary" id="closeSettingsBtn" style="flex:1;">完成</button>
     </div>
-    <div style="text-align:center; color:var(--text-faint); font-size:11px; margin-top:16px;">版本 v2 · UUID修正 + 詳細錯誤訊息</div>
+    <div style="text-align:center; color:var(--text-faint); font-size:11px; margin-top:16px;">版本 v4 · 安全漸速 + 分類菜單 + 客製目標</div>
   </div>
 </div>
 
@@ -390,44 +497,97 @@
   const CHR_CONTROL_POINT = '00002ad9-0000-1000-8000-00805f9b34fb';
   const OP = { REQUEST_CONTROL:0x00, RESET:0x01, SET_SPEED:0x02, SET_INCLINE:0x03, START:0x07, STOP:0x08, RESPONSE:0x80 };
 
+  /* ============ Icons ============ */
+  const ICON_DISTANCE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.3 7-12a7 7 0 10-14 0c0 4.7 7 12 7 12z"/><circle cx="12" cy="9" r="2.2"/></svg>';
+  const ICON_TIME = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.2 2"/></svg>';
+  const ICON_CAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4.5-3 8.5a3 3 0 006 0c0-1.2-1-2-1-3 2 1.2 3 3.3 3 5.5a5 5 0 01-10 0C7 8.5 10 6 12 2z"/></svg>';
+  const ICON_SPEED = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
+  const ICON_FREE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="8" cy="6" rx="2.2" ry="3"/><ellipse cx="16" cy="15" rx="2.2" ry="3"/></svg>';
+  const ICON_INTERVAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l2-7 4 14 2-7h8"/></svg>';
+  const ICON_GENTLE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9c3-3.5 5.5-3.5 8.5 0s5.5 3.5 8.5 0M2 15c3-3.5 5.5-3.5 8.5 0s5.5 3.5 8.5 0"/></svg>';
+  const ICON_INCLINE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20L9 8l3.5 5L15 9l7 11H2z"/></svg>';
+
+  const TYPE_META = {
+    free:     { label:'自由', badge:'badge-color-blue',   icon:ICON_FREE },
+    interval: { label:'間歇', badge:'badge-color-orange', icon:ICON_INTERVAL },
+    gentle:   { label:'緩走', badge:'badge-color-green',  icon:ICON_GENTLE },
+    incline:  { label:'爬坡', badge:'badge-color-purple', icon:ICON_INCLINE },
+  };
+
   /* ============ Preset programs ============ */
   const PROGRAMS = [
-    { id:'free', name:'自由走', desc:'手動控制速度與坡度', segments:null },
-    { id:'fatburn30', name:'30分鐘 脂肪燃燒', desc:'暖身 + 5組間歇 + 燃脂 + 緩和', segments:[
-      {label:'暖身', duration:300, speed:3.5, incline:1.0},
-      {label:'間歇衝刺', duration:120, speed:6.5, incline:2.0},
-      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
-      {label:'間歇衝刺', duration:120, speed:6.5, incline:2.0},
-      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
-      {label:'間歇衝刺', duration:120, speed:6.5, incline:2.0},
-      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
-      {label:'間歇衝刺', duration:120, speed:6.5, incline:2.0},
-      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
-      {label:'間歇衝刺', duration:120, speed:6.5, incline:2.0},
-      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
-      {label:'穩定燃脂', duration:300, speed:5.5, incline:1.0},
-      {label:'緩和收操', duration:300, speed:3.5, incline:0.0},
+    { id:'eatwalk10', name:'吃飽飯走走', desc:'10分鐘・飯後超和緩散步', group:'short', type:'gentle', segments:[
+      {label:'暖身', duration:60, speed:1.3, incline:0},
+      {label:'暖身加速', duration:60, speed:1.8, incline:0},
+      {label:'穩定緩走', duration:360, speed:2.2, incline:0},
+      {label:'緩和', duration:60, speed:1.6, incline:0},
+      {label:'緩和收操', duration:60, speed:1.3, incline:0},
     ]},
-    { id:'quick20', name:'20分鐘 快速有氧', desc:'上班前 / 下班後的短時間菜單', segments:[
-      {label:'暖身', duration:180, speed:3.5, incline:0.5},
-      {label:'加速', duration:240, speed:5.5, incline:1.0},
-      {label:'衝刺', duration:180, speed:6.5, incline:1.5},
-      {label:'加速', duration:240, speed:5.5, incline:1.0},
-      {label:'衝刺', duration:180, speed:6.5, incline:1.5},
-      {label:'緩和', duration:180, speed:3.5, incline:0.0},
+    { id:'recover15', name:'緩走恢復', desc:'15分鐘・低速平地，累的時候用', group:'short', type:'gentle', segments:[
+      {label:'暖身', duration:90, speed:1.3, incline:0},
+      {label:'暖身加速', duration:90, speed:1.8, incline:0},
+      {label:'暖身加速', duration:90, speed:2.4, incline:0.5},
+      {label:'穩定緩走', duration:450, speed:2.8, incline:0.5},
+      {label:'緩和', duration:90, speed:2.0, incline:0},
+      {label:'緩和收操', duration:90, speed:1.3, incline:0},
     ]},
-    { id:'incline40', name:'40分鐘 坡度耐力', desc:'低速高坡度，練心肺也練腿力', segments:[
-      {label:'暖身', duration:300, speed:3.5, incline:1.0},
-      {label:'爬坡 1', duration:420, speed:4.0, incline:4.0},
+    { id:'quick20', name:'快速間歇', desc:'20分鐘・上班前/下班後短時間間歇', group:'short', type:'interval', segments:[
+      {label:'暖身', duration:60, speed:1.3, incline:0},
+      {label:'暖身加速', duration:60, speed:2.0, incline:0},
+      {label:'暖身加速', duration:60, speed:3.0, incline:0.5},
+      {label:'加速', duration:300, speed:5.5, incline:1.0},
+      {label:'衝刺', duration:150, speed:6.5, incline:1.5},
+      {label:'加速', duration:180, speed:5.5, incline:1.0},
+      {label:'衝刺', duration:150, speed:6.5, incline:1.5},
+      {label:'緩和', duration:90, speed:3.0, incline:0},
+      {label:'緩和', duration:90, speed:1.8, incline:0},
+      {label:'緩和收操', duration:60, speed:1.3, incline:0},
+    ]},
+    { id:'fatburn30', name:'燃脂間歇', desc:'30分鐘・暖身+5組間歇+燃脂+緩和', group:'long', type:'interval', segments:[
+      {label:'暖身', duration:60, speed:1.3, incline:0},
+      {label:'暖身加速', duration:60, speed:2.0, incline:0.5},
+      {label:'暖身加速', duration:60, speed:3.0, incline:1.0},
+      {label:'間歇衝刺', duration:100, speed:6.5, incline:2.0},
+      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
+      {label:'間歇衝刺', duration:100, speed:6.5, incline:2.0},
+      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
+      {label:'間歇衝刺', duration:100, speed:6.5, incline:2.0},
+      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
+      {label:'間歇衝刺', duration:100, speed:6.5, incline:2.0},
+      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
+      {label:'間歇衝刺', duration:100, speed:6.5, incline:2.0},
+      {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
+      {label:'穩定燃脂', duration:400, speed:5.5, incline:1.0},
+      {label:'緩和', duration:180, speed:3.5, incline:0},
+      {label:'緩和', duration:160, speed:2.2, incline:0},
+      {label:'緩和收操', duration:100, speed:1.3, incline:0},
+    ]},
+    { id:'gentle35', name:'緩走長效', desc:'35分鐘・穩定速度，強度低但時間拉長', group:'long', type:'gentle', segments:[
+      {label:'暖身', duration:90, speed:1.3, incline:0},
+      {label:'暖身加速', duration:90, speed:2.0, incline:0},
+      {label:'暖身加速', duration:90, speed:2.8, incline:0.5},
+      {label:'穩定緩走', duration:1560, speed:3.2, incline:0.5},
+      {label:'緩和', duration:90, speed:2.4, incline:0},
+      {label:'緩和', duration:90, speed:1.8, incline:0},
+      {label:'緩和收操', duration:90, speed:1.3, incline:0},
+    ]},
+    { id:'incline40', name:'高爬坡耐力', desc:'40分鐘・坡度最高衝到15%，速度全程壓在4.0以內', group:'long', type:'incline', segments:[
+      {label:'暖身', duration:60, speed:1.3, incline:0},
+      {label:'暖身加速', duration:60, speed:2.0, incline:0.5},
+      {label:'暖身加速', duration:60, speed:2.8, incline:0.5},
+      {label:'暖身加速', duration:60, speed:3.5, incline:1.0},
+      {label:'爬坡 1', duration:300, speed:4.0, incline:6.0},
       {label:'平緩', duration:180, speed:4.5, incline:1.0},
-      {label:'爬坡 2', duration:420, speed:4.0, incline:6.0},
+      {label:'爬坡 2', duration:300, speed:4.0, incline:10.0},
       {label:'平緩', duration:180, speed:4.5, incline:1.0},
-      {label:'爬坡 3', duration:420, speed:4.0, incline:8.0},
+      {label:'爬坡 3', duration:300, speed:4.0, incline:15.0},
       {label:'平緩', duration:180, speed:4.5, incline:1.0},
-      {label:'緩和收操', duration:300, speed:3.0, incline:0.0},
+      {label:'緩和', duration:200, speed:3.0, incline:0},
+      {label:'緩和', duration:200, speed:2.0, incline:0},
+      {label:'緩和收操', duration:160, speed:1.3, incline:0},
     ]},
   ];
-  PROGRAMS.forEach(p=>{ p.totalSec = p.segments ? p.segments.reduce((a,s)=>a+s.duration,0) : null; });
+  PROGRAMS.forEach(p=>{ p.totalSec = p.segments.reduce((a,s)=>a+s.duration,0); });
 
   /* ============ state ============ */
   let device=null, server=null, ftmsService=null;
@@ -435,8 +595,10 @@
   let controlQueue = Promise.resolve();
   let pendingResolve=null;
 
-  let selectedProgramId = 'free';
-  let manualSpeed = 3.5, manualIncline = 1.0;
+  let selectedGroup = 'short';
+  let selectedProgramId = null;
+  let manualSpeed = 1.3, manualIncline = 1.0;
+  let freeGoal = { type:'time', target:20 };
 
   let session = null; // active session object while running
   let sessionTimer = null;
@@ -445,6 +607,8 @@
   let dbNS = null;
   const LS_KEY = 'dd05_sessions_v1';
   const LS_SETTINGS = 'dd05_settings_v1';
+  const GOAL_RING_CIRC = 2*Math.PI*42;
+  const STEP_STRIDE_M = 0.7;
 
   /* ============ helpers ============ */
   function $(id){ return document.getElementById(id); }
@@ -491,6 +655,8 @@
       setStatus('connected','已連線');
       $('wo-connect').style.display='none';
       $('wo-picker').style.display='block';
+      renderFreeWalkCard();
+      renderProgramList();
     }catch(err){
       console.warn('connect failed', err);
       setStatus('idle','未連線');
@@ -524,7 +690,7 @@
     // lightweight non-blocking notice
     const n=document.createElement('div');
     n.textContent=msg;
-    n.style.cssText='position:fixed;left:16px;right:16px;bottom:90px;background:#2A1414;color:#FFB4B4;border:1px solid #5A2626;padding:12px 14px;border-radius:10px;font-size:13px;z-index:99;word-break:break-word;';
+    n.style.cssText='position:fixed;left:16px;right:16px;bottom:90px;background:#FCE2E1;color:#8A2320;border:1px solid #F5B8B5;padding:12px 14px;border-radius:12px;font-size:13px;z-index:99;word-break:break-word;box-shadow:0 6px 20px rgba(60,20,15,.12);';
     document.body.appendChild(n);
     setTimeout(()=>n.remove(), duration||3800);
   }
@@ -610,6 +776,7 @@
     }
   }
   let lastLive = {};
+  let lastGoalPct = 0;
 
   /* ============ session timer / scheduler ============ */
   function startSessionTimer(){
@@ -624,6 +791,7 @@
     if(!session || !session.running) return;
     const elapsed = (Date.now()-session.startedAt-session.pausedTotal)/1000;
     $('liveTime').textContent = fmtTime(elapsed);
+    updateFreeGoalLive();
 
     const prog = session.program;
     if(prog && prog.segments){
@@ -656,27 +824,87 @@
     }
   }
 
+  /* ============ free walk goal ============ */
+  function renderFreeWalkCard(){
+    const host = $('freeWalkCard');
+    const isSel = selectedProgramId==='free';
+    host.innerHTML = `
+      <div class="program-item${isSel?' selected':''}" id="freeWalkRow">
+        <div class="radio"></div>
+        <div class="p-icon ${TYPE_META.free.badge}">${TYPE_META.free.icon}</div>
+        <div class="info" style="flex:1;"><div class="t">自由走</div><div class="d">手動控制速度與坡度，從1.3km/h開始</div></div>
+        <span class="type-tag ${TYPE_META.free.badge}">自由</span>
+      </div>
+      ${isSel ? `
+      <div class="goal-config">
+        <div class="seg-toggle" id="freeGoalTypeToggle">
+          <button type="button" data-val="time" class="seg-btn">時間</button>
+          <button type="button" data-val="distance" class="seg-btn">距離</button>
+          <button type="button" data-val="steps" class="seg-btn">步數</button>
+        </div>
+        <div style="margin-top:10px;"><input type="number" id="freeGoalTargetInput" class="mono"></div>
+        <div class="field-note" id="freeGoalNote"></div>
+      </div>` : ''}
+    `;
+    $('freeWalkRow').addEventListener('click', ()=>{ selectedProgramId='free'; renderFreeWalkCard(); renderProgramList(); });
+    if(isSel){
+      document.querySelectorAll('#freeGoalTypeToggle .seg-btn').forEach(b=>{
+        b.addEventListener('click', ()=>{ freeGoal.type=b.dataset.val; syncFreeGoalUI(); });
+      });
+      $('freeGoalTargetInput').value = freeGoal.target;
+      $('freeGoalTargetInput').addEventListener('input', (e)=>{ freeGoal.target = parseFloat(e.target.value)||0; });
+      syncFreeGoalUI();
+    }
+  }
+  function syncFreeGoalUI(){
+    document.querySelectorAll('#freeGoalTypeToggle .seg-btn').forEach(b=> b.classList.toggle('active', b.dataset.val===freeGoal.type));
+    const note = $('freeGoalNote');
+    if(freeGoal.type==='time'){ note.textContent = '目標：走幾分鐘（時間到不會自動結束，只顯示進度）'; }
+    else if(freeGoal.type==='distance'){ note.textContent = '目標：走幾公里'; }
+    else { note.textContent = '目標：約幾步（用距離估算，非機器實測步數）'; }
+  }
+  function updateFreeGoalLive(){
+    const el = $('freeGoalLive');
+    if(!session || !session.goal){ el.style.display='none'; return; }
+    el.style.display='block';
+    const g = session.goal;
+    if(g.type==='time'){
+      const elapsedMin = Math.floor((Date.now()-session.startedAt-session.pausedTotal)/60000);
+      el.textContent = `目標 ${g.target} 分鐘・已走 ${elapsedMin} 分鐘`;
+    }else if(g.type==='distance'){
+      const d = lastLive.distance!=null ? lastLive.distance/1000 : 0;
+      el.textContent = `目標 ${g.target} 公里・已走 ${d.toFixed(2)} 公里`;
+    }else{
+      const d = lastLive.distance!=null ? lastLive.distance/1000 : 0;
+      const steps = Math.round(d*1000/STEP_STRIDE_M);
+      el.textContent = `目標約 ${g.target} 步・已走約 ${steps} 步（依距離估算）`;
+    }
+  }
+
   /* ============ workout flow ============ */
   function renderProgramList(){
     const host = $('programList');
     host.innerHTML='';
-    PROGRAMS.forEach(p=>{
+    PROGRAMS.filter(p=>p.group===selectedGroup).forEach(p=>{
       const el=document.createElement('div');
       el.className='program-item'+(p.id===selectedProgramId?' selected':'');
-      const lenText = p.totalSec ? fmtTime(p.totalSec) : '手動';
-      el.innerHTML = `<div class="radio"></div><div class="info" style="flex:1;"><div class="t">${p.name}</div><div class="d">${p.desc}</div></div><div class="len">${lenText}</div>`;
-      el.addEventListener('click', ()=>{ selectedProgramId=p.id; renderProgramList(); });
+      const meta = TYPE_META[p.type];
+      el.innerHTML = `<div class="radio"></div><div class="p-icon ${meta.badge}">${meta.icon}</div><div class="info" style="flex:1;"><div class="t">${p.name}</div><div class="d">${p.desc}</div></div><div class="right-meta"><span class="type-tag ${meta.badge}">${meta.label}</span><span class="len">${fmtTime(p.totalSec)}</span></div>`;
+      el.addEventListener('click', ()=>{ selectedProgramId=p.id; renderProgramList(); renderFreeWalkCard(); });
       host.appendChild(el);
     });
   }
 
   function beginWorkout(){
-    const prog = PROGRAMS.find(p=>p.id===selectedProgramId);
+    if(!selectedProgramId){ alertInline('先選一個菜單或自由走'); return; }
+    const isFree = selectedProgramId==='free';
+    const prog = isFree ? { id:'free', name:'自由走', segments:null } : PROGRAMS.find(p=>p.id===selectedProgramId);
     session = {
       id: uid(),
       date: todayStr(),
-      program: prog.id==='free' ? null : prog,
+      program: prog.segments ? prog : null,
       programName: prog.name,
+      goal: isFree ? { ...freeGoal } : null,
       startedAt: Date.now(),
       pausedTotal: 0,
       running: true,
@@ -698,16 +926,19 @@
     if(prog.segments){
       $('segmentBar').style.display='block';
       $('manualControls').style.display='none';
+      $('freeGoalLive').style.display='none';
       const seg0=prog.segments[0];
       sendControl(buildSpeedCmd(seg0.speed));
       sendControl(buildInclineCmd(seg0.incline));
     }else{
       $('segmentBar').style.display='none';
       $('manualControls').style.display='flex';
+      manualSpeed = 1.3;
       $('spdVal').textContent = manualSpeed.toFixed(1);
       $('incVal').textContent = manualIncline.toFixed(1);
       sendControl(buildSpeedCmd(manualSpeed));
       sendControl(buildInclineCmd(manualIncline));
+      updateFreeGoalLive();
     }
 
     sendControl([OP.START]);
@@ -731,11 +962,26 @@
     }
   }
 
-  function finishSession(){
+  async function rampDownAndStop(){
+    let s = lastLive.speed!=null ? lastLive.speed : manualSpeed;
+    if(!s || s<1.3){ sendControl([OP.STOP,0x01]); await new Promise(r=>setTimeout(r,300)); return; }
+    while(s > 1.3){
+      s = Math.max(1.0, +(s-1.3).toFixed(1));
+      sendControl(buildSpeedCmd(s));
+      await new Promise(r=>setTimeout(r, 1100));
+    }
+    sendControl([OP.STOP,0x01]);
+    await new Promise(r=>setTimeout(r, 400));
+  }
+
+  async function finishSession(){
     if(!session) return;
     session.running=false;
     stopSessionTimer();
-    sendControl([OP.STOP,0x01]);
+    $('stopBtn').disabled = true;
+    $('stopBtn').textContent = '減速中…';
+
+    await rampDownAndStop();
 
     session.endedAt = Date.now();
     session.durationSec = Math.round((session.endedAt-session.startedAt-session.pausedTotal)/1000);
@@ -743,9 +989,13 @@
     session.calories = lastLive.energy!=null ? lastLive.energy : null;
     session.avgSpeed = session.durationSec>0 ? (session.distanceKm/(session.durationSec/3600)) : 0;
 
-    saveSession(session).then(refreshHome).then(refreshHistory);
+    await saveSession(session);
+    await refreshHome();
+    await refreshHistory();
 
     $('wo-live').style.display='none';
+    $('stopBtn').disabled = false;
+    $('stopBtn').textContent = '結束運動';
     showSummary(session);
   }
 
@@ -755,6 +1005,7 @@
     $('sumDistance').textContent = s.distanceKm.toFixed(2);
     $('sumAvgSpeed').textContent = s.avgSpeed.toFixed(1)+' km/h';
     $('sumCal').textContent = s.calories!=null ? s.calories : '—';
+    applyMascot($('summaryMascot'), lastGoalPct);
     renderChart($('chartHost'), s.samples);
   }
 
@@ -776,7 +1027,7 @@
     }).join(' ');
     const areaPts = `${pad},${H-pad} ${pts} ${W-pad},${H-pad}`;
     const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
-      <polygon points="${areaPts}" fill="#FF8A3D22"></polygon>
+      <polygon points="${areaPts}" fill="#FF8A3D33"></polygon>
       <polyline points="${pts}" fill="none" stroke="#FF8A3D" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
     </svg>
     <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint); margin-top:6px;">
@@ -819,8 +1070,54 @@
     }catch(e){ return []; }
   }
 
-  /* ============ home / calendar ============ */
+  /* ============ home / calendar / goal ============ */
   let allSessionsCache = [];
+
+  function updateGoalRing(monthSessions){
+    const s = loadSettings();
+    const goalType = s.goalType || 'count';
+    const title = s.goalTitle || '麻麻の零用錢';
+    $('goalCardTitle').textContent = title;
+
+    const count = monthSessions.length;
+    const totalMin = Math.round(monthSessions.reduce((a,x)=>a+(x.durationSec||0),0)/60);
+    const target = goalType==='minutes' ? (s.goalMinutesTarget||480) : (s.goalCountTarget||20);
+    const current = goalType==='minutes' ? totalMin : count;
+    const unit = goalType==='minutes' ? '分鐘' : '次';
+    const reward = s.goalReward!=null ? s.goalReward : 1000;
+    const pct = target>0 ? Math.min(1, current/target) : 0;
+
+    $('goalRingFill').style.strokeDashoffset = String(GOAL_RING_CIRC*(1-pct));
+    $('goalRingCount').textContent = current;
+    $('goalRingTarget').textContent = '/'+target;
+
+    const descEl = $('goalDesc');
+    const pctNum = pct*100;
+    let msg;
+    if(pctNum>=100) msg = reward>0 ? `🎉 達成了！麻麻的 $${reward} 到手～` : '🎉 達成了！';
+    else if(pctNum>=70) msg = '只差一點點，快點站起來走走一下！';
+    else if(pctNum>=40) msg = '過半啦！零用錢走一半了';
+    else if(pctNum>=1) msg = `已經運動 ${current} ${unit}，慢慢來～`;
+    else msg = '這個月才剛開始，麻麻加油！';
+    descEl.textContent = msg;
+    descEl.classList.toggle('met', pctNum>=100);
+
+    lastGoalPct = pctNum;
+    applyMascot($('goalMascot'), pctNum);
+  }
+
+  function mascotFileForPct(pct){
+    if(pct>=100) return 'squid-100.png';
+    if(pct>=70) return 'squid-70.png';
+    if(pct>=40) return 'squid-50.png';
+    if(pct>=1) return 'squid-20.png';
+    return null;
+  }
+  function applyMascot(imgEl, pct){
+    const file = mascotFileForPct(pct);
+    if(file){ imgEl.src = file; imgEl.style.display = 'block'; }
+    else{ imgEl.style.display = 'none'; }
+  }
 
   async function refreshHome(){
     allSessionsCache = await loadAllSessions();
@@ -834,6 +1131,7 @@
     $('monthCount').textContent = monthSessions.length ? `本月共 ${monthSessions.length} 次運動` : '本月尚無紀錄';
     $('monthLabel').textContent = `${y}年${m+1}月`;
 
+    updateGoalRing(monthSessions);
     renderCalendar(y,m,monthSessions);
 
     const recentHost = $('recentList');
@@ -901,10 +1199,10 @@
   function openDetail(s){
     $('detailDate').textContent = new Date(s.startedAt).toLocaleDateString('zh-TW',{month:'long',day:'numeric'}) + ' · ' + (s.programName||'自由走');
     $('detailStats').innerHTML = `
-      <div class="summary-stat"><div class="v">${fmtTime(s.durationSec||0)}</div><div class="l">時長</div></div>
-      <div class="summary-stat"><div class="v">${(s.distanceKm||0).toFixed(2)}</div><div class="l">距離 km</div></div>
-      <div class="summary-stat"><div class="v">${(s.avgSpeed||0).toFixed(1)} km/h</div><div class="l">平均速度</div></div>
-      <div class="summary-stat"><div class="v">${s.calories!=null?s.calories:'—'}</div><div class="l">大卡</div></div>
+      <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-blue">${ICON_TIME}</span><span class="l">時長</span></div><div class="v">${fmtTime(s.durationSec||0)}</div></div>
+      <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-green">${ICON_DISTANCE}</span><span class="l">距離 km</span></div><div class="v">${(s.distanceKm||0).toFixed(2)}</div></div>
+      <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-purple">${ICON_SPEED}</span><span class="l">平均速度</span></div><div class="v">${(s.avgSpeed||0).toFixed(1)} km/h</div></div>
+      <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-red">${ICON_CAL}</span><span class="l">大卡</span></div><div class="v">${s.calories!=null?s.calories:'—'}</div></div>
     `;
     renderChart($('detailChartHost'), s.samples||[]);
     $('detailSaveHealthBtn').onclick = ()=>sendToHealth(s);
@@ -935,18 +1233,45 @@
   }
 
   /* ============ settings modal ============ */
+  let settingsGoalType = 'count';
+  function setGoalTypeUI(type){
+    settingsGoalType = type;
+    document.querySelectorAll('#goalTypeToggle .seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===type));
+    const s = loadSettings();
+    if(type==='minutes'){
+      $('goalTargetLabel').textContent = '目標分鐘數';
+      $('goalTargetInput').value = s.goalMinutesTarget || 480;
+    }else{
+      $('goalTargetLabel').textContent = '目標次數';
+      $('goalTargetInput').value = s.goalCountTarget || 20;
+    }
+  }
   function openSettings(){
     const s=loadSettings();
     $('shortcutNameInput').value = s.shortcutName || '';
+    $('goalTitleInput').value = s.goalTitle || '麻麻の零用錢';
+    $('goalRewardInput').value = s.goalReward!=null ? s.goalReward : 1000;
+    setGoalTypeUI(s.goalType || 'count');
     $('settingsModal').classList.add('open');
   }
   function closeSettings(){
     const name = $('shortcutNameInput').value.trim();
-    saveSettings({ shortcutName: name });
+    const s = loadSettings();
+    const goalTitle = $('goalTitleInput').value.trim() || '麻麻の零用錢';
+    const goalReward = parseInt($('goalRewardInput').value,10) || 0;
+    const targetVal = parseInt($('goalTargetInput').value,10);
+    const next = {
+      shortcutName:name, goalTitle, goalReward, goalType:settingsGoalType,
+      goalCountTarget: s.goalCountTarget||20, goalMinutesTarget: s.goalMinutesTarget||480
+    };
+    if(settingsGoalType==='minutes') next.goalMinutesTarget = targetVal||480;
+    else next.goalCountTarget = targetVal||20;
+    saveSettings(next);
     $('settingsModal').classList.remove('open');
+    refreshHome();
   }
 
-  const SHORTCUT_GUIDE = `1. 打開「捷徑」App → 右上角「+」新增捷徑\n2. 把捷徑命名為你等一下要填在上面欄位的名字（例如「DD05記錄」）\n3. 加入動作「從輸入取得文字」(Get Text from Input)\n4. 加入動作「從輸入取得字典」(Get Dictionary from Input)，輸入選「文字」的輸出\n5. 加入動作「記錄健身紀錄」(Log Workout)：\n   - 運動類型：步行\n   - 時長：選「字典值」→ 鍵名 durationMin，單位選分鐘\n   - 距離：選「字典值」→ 鍵名 distanceKm，單位選公里\n   - 主動消耗熱量：選「字典值」→ 鍵名 calories\n6. 存檔即可，之後在這個網頁按「存入 Apple 健康」會自動跳出捷徑幫你寫入`;
+  const SHORTCUT_GUIDE = `1. 打開「捷徑」App → 右上角「+」新增捷徑\n2. 把捷徑命名為你等一下要填在上面欄位的名字（例如「DD05記錄」）\n3. 加入動作「從輸入取得字典」(Get Dictionary from Input)\n4. 加入動作「記錄健身紀錄」(Log Workout)：\n   - 運動類型：步行\n   - 持續時間：點欄位插入「辭典」變數 → 選鍵 durationMin，單位選分鐘\n   - 距離：點欄位插入「辭典」變數 → 選鍵 distanceKm，單位選公里\n   - 熱量：點欄位插入「辭典」變數 → 選鍵 calories\n5. 存檔即可，之後在這個網頁按「存入 Apple 健康」會自動跳出捷徑幫你寫入`;
 
   /* ============ nav / view switching ============ */
   function switchView(name){
@@ -968,6 +1293,18 @@
   $('stopBtn').addEventListener('click', finishSession);
   $('doneSummaryBtn').addEventListener('click', ()=>{ $('wo-summary').style.display='none'; $('wo-picker').style.display='block'; switchView('home'); });
   $('saveHealthBtn').addEventListener('click', ()=>sendToHealth(session));
+
+  document.querySelectorAll('#groupToggle .seg-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      selectedGroup = b.dataset.val;
+      document.querySelectorAll('#groupToggle .seg-btn').forEach(x=>x.classList.toggle('active', x===b));
+      renderProgramList();
+    });
+  });
+
+  document.querySelectorAll('#goalTypeToggle .seg-btn').forEach(b=>{
+    b.addEventListener('click', ()=>setGoalTypeUI(b.dataset.val));
+  });
 
   $('settingsBtn').addEventListener('click', openSettings);
   $('closeSettingsBtn').addEventListener('click', closeSettings);
@@ -994,8 +1331,9 @@
   (async function init(){
     if(!navigator.bluetooth) $('noBleWarn').style.display='block';
     await initDB();
+    renderFreeWalkCard();
     renderProgramList();
-    refreshHome();
+    switchView('home');
   })();
 
 })();
