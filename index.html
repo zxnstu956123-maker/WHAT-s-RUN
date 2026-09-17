@@ -924,11 +924,13 @@
       type:'Walking',
       durationMin: Math.round((s.durationSec||0)/60),
       distanceKm: Number((s.distanceKm||0).toFixed(2)),
-      calories: s.calories!=null ? s.calories : null,
+      calories: s.calories!=null ? Math.round(s.calories) : 0,
       date: s.date,
     };
     const text = encodeURIComponent(JSON.stringify(payload));
     const url = `shortcuts://x-callback-url/run-shortcut?name=${encodeURIComponent(name)}&input=text&text=${text}`;
+    console.log('[sendToHealth] payload', payload, 'url', url);
+    alertInline(`送出捷徑「${name}」：${payload.durationMin}分 / ${payload.distanceKm}km / ${payload.calories}大卡`, 4500);
     window.location.href = url;
   }
 
