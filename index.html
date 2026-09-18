@@ -42,7 +42,7 @@
     font-family:'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
     font-size:15px;
     line-height:1.5;
-    padding-bottom:78px;
+    padding-bottom:calc(78px + env(safe-area-inset-bottom, 0px));
     min-height:100vh;
     background:
       radial-gradient(ellipse 900px 460px at 50% -8%, #FFDFC0 0%, rgba(255,223,192,0) 65%),
@@ -160,13 +160,16 @@
   .empty-note{color:var(--text-faint); font-size:13px; padding:6px 0 2px;}
 
   /* ---- Connect ---- */
-  .connect-box{text-align:center; padding:26px 18px;}
-  .connect-box .glyph{margin:0 auto 10px; width:36px; height:36px; color:var(--accent);}
-  .connect-box .glyph svg{width:36px; height:36px;}
-  .connect-box p{color:var(--text-dim); font-size:13.5px; margin:8px 0 18px;}
+  .connect-banner{display:flex; align-items:center; gap:12px; padding:14px 16px;}
+  .connect-banner .glyph-sm{width:30px; height:30px; color:var(--accent); flex-shrink:0;}
+  .connect-banner .glyph-sm svg{width:30px; height:30px;}
+  .connect-banner-text{flex:1;}
+  .connect-banner-text .t{font-weight:700; font-size:14px;}
+  .connect-banner-text .d{color:var(--text-dim); font-size:11.5px; margin-top:2px;}
   .btn-primary{
     padding:14px 26px; border-radius:12px; background:var(--accent); color:#2E1400; font-weight:700; font-size:15px;
   }
+  .btn-primary.sm{padding:10px 18px; font-size:13.5px; flex-shrink:0;}
   .btn-secondary{
     padding:13px 22px; border-radius:12px; background:var(--surface-2); color:var(--text); font-weight:600; font-size:14px;
   }
@@ -185,6 +188,7 @@
   .p-icon svg{width:17px; height:17px;}
   .program-item .info .t{font-weight:700; font-size:14.5px; color:var(--text);}
   .program-item .info .d{color:var(--text-dim); font-size:12px; margin-top:3px;}
+  .program-item .spark{display:block; margin-top:6px; width:72px; height:22px;}
   .right-meta{display:flex; flex-direction:column; align-items:flex-end; gap:5px; flex-shrink:0;}
   .type-tag{font-size:10.5px; font-weight:700; padding:4px 9px; border-radius:8px; white-space:nowrap;}
   .len{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--text-dim); white-space:nowrap;}
@@ -232,8 +236,10 @@
   .btn-go{background:var(--accent); color:#2E1400;}
 
   /* ---- Summary ---- */
+  .summary-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
   .summary-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px;}
   .summary-grid .stat-tile .v{font-size:21px;}
+  .stat-tile.wide{grid-column:1/-1;}
   .chart-wrap{background:var(--surface-2); border-radius:14px; padding:12px; margin-bottom:16px;}
   .chart-wrap svg{width:100%; height:auto; display:block;}
   .health-btn{
@@ -333,19 +339,21 @@
   <!-- WORKOUT -->
   <section class="view" id="view-workout">
 
-    <!-- not connected -->
-    <div id="wo-connect" class="card connect-box">
-      <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10-5 4V3l5 4L7 17"/></svg></div>
-      <h2 style="margin-bottom:0;">連線 DD05</h2>
-      <p>透過藍牙直接連上走步機，資料只在你的手機跟機器之間傳輸，不經過任何雲端伺服器。</p>
-      <button class="btn-primary" id="connectBtn">連接走步機</button>
-      <div class="warn-box" id="noBleWarn" style="display:none;">
-        這個瀏覽器不支援 Web Bluetooth。iPhone 上請用「Bluefy」瀏覽器開啟這個頁面（Safari 本身不支援）。
+    <!-- connect banner: only visible when not connected -->
+    <div id="connectBanner" class="card connect-banner">
+      <div class="glyph-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10-5 4V3l5 4L7 17"/></svg></div>
+      <div class="connect-banner-text">
+        <div class="t">尚未連線 DD05</div>
+        <div class="d">選單可以先看，開始運動前要先連線</div>
       </div>
+      <button class="btn-primary sm" id="connectBtn">連接</button>
+    </div>
+    <div class="warn-box" id="noBleWarn" style="display:none;">
+      這個瀏覽器不支援 Web Bluetooth。iPhone 上請用「Bluefy」瀏覽器開啟這個頁面（Safari 本身不支援）。
     </div>
 
-    <!-- connected, picking mode -->
-    <div id="wo-picker" style="display:none;">
+    <!-- picker: always visible -->
+    <div id="wo-picker">
       <div class="card">
         <h2>自由走</h2>
         <div id="freeWalkCard"></div>
@@ -409,12 +417,16 @@
     <!-- summary -->
     <div id="wo-summary" style="display:none;">
       <div class="card">
-        <h2>本次運動 <img class="goal-mascot sm" id="summaryMascot" src="squid-20.png" alt="花枝" style="display:none;"></h2>
+        <div class="summary-head">
+          <h2 style="margin-bottom:0;">本次運動</h2>
+          <img class="goal-mascot" id="summaryMascot" src="squid-20.png" alt="花枝" style="display:none;">
+        </div>
         <div class="summary-grid">
           <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.2 2"/></svg></span><span class="l">時長</span></div><div class="v" id="sumDuration">--</div></div>
           <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.3 7-12a7 7 0 10-14 0c0 4.7 7 12 7 12z"/><circle cx="12" cy="9" r="2.2"/></svg></span><span class="l">距離 km</span></div><div class="v" id="sumDistance">--</div></div>
           <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg></span><span class="l">平均速度</span></div><div class="v" id="sumAvgSpeed">--</div></div>
           <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4.5-3 8.5a3 3 0 006 0c0-1.2-1-2-1-3 2 1.2 3 3.3 3 5.5a5 5 0 01-10 0C7 8.5 10 6 12 2z"/></svg></span><span class="l">大卡</span></div><div class="v" id="sumCal">--</div></div>
+          <div class="stat-tile wide"><div class="top"><span class="badge-sm badge-color-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="8" cy="6" rx="2.2" ry="3"/><ellipse cx="16" cy="15" rx="2.2" ry="3"/></svg></span><span class="l">約略步數（依距離估算）</span></div><div class="v" id="sumSteps">--</div></div>
         </div>
         <div class="chart-wrap"><div id="chartHost"></div></div>
         <button class="health-btn" id="saveHealthBtn">存入 Apple 健康</button>
@@ -504,6 +516,7 @@
 
   /* ============ Icons ============ */
   const ICON_DISTANCE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.3 7-12a7 7 0 10-14 0c0 4.7 7 12 7 12z"/><circle cx="12" cy="9" r="2.2"/></svg>';
+  const ICON_STEPS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="8" cy="6" rx="2.2" ry="3"/><ellipse cx="16" cy="15" rx="2.2" ry="3"/></svg>';
   const ICON_TIME = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.2 2"/></svg>';
   const ICON_CAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4.5-3 8.5a3 3 0 006 0c0-1.2-1-2-1-3 2 1.2 3 3.3 3 5.5a5 5 0 01-10 0C7 8.5 10 6 12 2z"/></svg>';
   const ICON_SPEED = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
@@ -596,6 +609,7 @@
 
   /* ============ state ============ */
   let device=null, server=null, ftmsService=null;
+  let isConnected=false;
   let chData=null, chStatus=null, chControl=null;
   let controlQueue = Promise.resolve();
   let pendingResolve=null;
@@ -658,10 +672,8 @@
       await sendControl([OP.REQUEST_CONTROL]);
 
       setStatus('connected','已連線');
-      $('wo-connect').style.display='none';
-      $('wo-picker').style.display='block';
-      renderFreeWalkCard();
-      renderProgramList();
+      isConnected = true;
+      $('connectBanner').style.display='none';
     }catch(err){
       console.warn('connect failed', err);
       setStatus('idle','未連線');
@@ -680,9 +692,10 @@
 
   function onDisconnected(){
     setStatus('idle','已斷線');
-    $('wo-connect').style.display='block';
-    $('wo-picker').style.display='none';
+    isConnected = false;
+    $('connectBanner').style.display='flex';
     $('wo-live').style.display='none';
+    $('wo-picker').style.display='block';
   }
 
   function setStatus(state, text){
@@ -698,6 +711,36 @@
     n.style.cssText='position:fixed;left:16px;right:16px;bottom:90px;background:#FCE2E1;color:#8A2320;border:1px solid #F5B8B5;padding:12px 14px;border-radius:12px;font-size:13px;z-index:99;word-break:break-word;box-shadow:0 6px 20px rgba(60,20,15,.12);';
     document.body.appendChild(n);
     setTimeout(()=>n.remove(), duration||3800);
+  }
+
+  function alertCenter(msg, actionLabel, actionFn){
+    const backdrop=document.createElement('div');
+    backdrop.style.cssText='position:fixed;inset:0;background:rgba(30,20,10,.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:28px;';
+    const card=document.createElement('div');
+    card.style.cssText='background:#fff;border-radius:18px;padding:22px 20px;max-width:320px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.22);';
+    const p=document.createElement('div');
+    p.textContent=msg;
+    p.style.cssText='font-size:15px;font-weight:700;color:#241D14;margin-bottom:16px;line-height:1.5;';
+    card.appendChild(p);
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;gap:10px;';
+    const close=()=>{ if(backdrop.parentNode) document.body.removeChild(backdrop); };
+    if(actionFn){
+      const actionBtn=document.createElement('button');
+      actionBtn.textContent=actionLabel;
+      actionBtn.style.cssText='flex:1;padding:12px;border-radius:12px;background:#FF8A3D;color:#2E1400;font-weight:700;font-size:14.5px;border:none;';
+      actionBtn.onclick=()=>{ close(); actionFn(); };
+      row.appendChild(actionBtn);
+    }
+    const closeBtn=document.createElement('button');
+    closeBtn.textContent=actionFn?'取消':'知道了';
+    closeBtn.style.cssText='flex:1;padding:12px;border-radius:12px;background:#F3ECE1;color:#241D14;font-weight:600;font-size:14.5px;border:none;';
+    closeBtn.onclick=close;
+    row.appendChild(closeBtn);
+    card.appendChild(row);
+    backdrop.appendChild(card);
+    backdrop.addEventListener('click',(e)=>{ if(e.target===backdrop) close(); });
+    document.body.appendChild(backdrop);
   }
 
   /* ============ Control point ============ */
@@ -767,7 +810,9 @@
     applyLiveData(out);
   }
 
+  const SPEED_SANITY_MAX = 12; // DD05's real max is 6km/h; anything past this is a bad BLE reading, not a real speed
   function applyLiveData(d){
+    if(d.speed!=null && d.speed>SPEED_SANITY_MAX){ d=Object.assign({},d,{speed:null}); }
     if(d.speed!=null){ $('liveSpeed').textContent = d.speed.toFixed(1); lastLive.speed=d.speed; }
     if(d.distance!=null){ $('liveDist').textContent = (d.distance/1000).toFixed(2); lastLive.distance=d.distance; }
     if(d.energy!=null){ $('liveCal').textContent = d.energy; lastLive.energy=d.energy; }
@@ -814,8 +859,12 @@
       if(idx!==segmentStartIdx){
         segmentStartIdx=idx;
         const seg=prog.segments[idx];
-        sendControl(buildSpeedCmd(seg.speed));
-        sendControl(buildInclineCmd(seg.incline));
+        manualSpeed = seg.speed;
+        manualIncline = seg.incline;
+        $('spdVal').textContent = manualSpeed.toFixed(1);
+        $('incVal').textContent = manualIncline.toFixed(1);
+        sendControl(buildSpeedCmd(seg.speed)).then(ok=>{ if(!ok) alertInline(`⚠️ 機器沒有確認收到「${seg.label}」的速度指令（${seg.speed}km/h），可能沒有真的變速`, 6000); });
+        sendControl(buildInclineCmd(seg.incline)).then(ok=>{ if(!ok) alertInline(`⚠️ 機器沒有確認收到「${seg.label}」的坡度指令（${seg.incline}%）`, 6000); });
       }
       const seg=prog.segments[idx];
       const segElapsed = elapsed-segStart;
@@ -887,6 +936,20 @@
   }
 
   /* ============ workout flow ============ */
+  function programSparkline(p){
+    const W=72,H=22,pad=2;
+    const maxS = Math.max(...p.segments.map(s=>s.speed), 1);
+    let t=0; const pts=[];
+    p.segments.forEach(seg=>{
+      const x1=pad+(t/p.totalSec)*(W-2*pad);
+      t+=seg.duration;
+      const x2=pad+(t/p.totalSec)*(W-2*pad);
+      const y=(H-pad-(seg.speed/maxS)*(H-2*pad)).toFixed(1);
+      pts.push(`${x1.toFixed(1)},${y}`, `${x2.toFixed(1)},${y}`);
+    });
+    return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"><polyline points="${pts.join(' ')}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+
   function renderProgramList(){
     const host = $('programList');
     host.innerHTML='';
@@ -894,14 +957,15 @@
       const el=document.createElement('div');
       el.className='program-item'+(p.id===selectedProgramId?' selected':'');
       const meta = TYPE_META[p.type];
-      el.innerHTML = `<div class="radio"></div><div class="p-icon ${meta.badge}">${meta.icon}</div><div class="info" style="flex:1;"><div class="t">${p.name}</div><div class="d">${p.desc}</div></div><div class="right-meta"><span class="type-tag ${meta.badge}">${meta.label}</span><span class="len">${fmtTime(p.totalSec)}</span></div>`;
+      el.innerHTML = `<div class="radio"></div><div class="p-icon ${meta.badge}">${meta.icon}</div><div class="info" style="flex:1;"><div class="t">${p.name}</div><div class="d">${p.desc}</div><span class="spark ${meta.badge}">${programSparkline(p)}</span></div><div class="right-meta"><span class="type-tag ${meta.badge}">${meta.label}</span><span class="len">${fmtTime(p.totalSec)}</span></div>`;
       el.addEventListener('click', ()=>{ selectedProgramId=p.id; renderProgramList(); renderFreeWalkCard(); });
       host.appendChild(el);
     });
   }
 
   function beginWorkout(){
-    if(!selectedProgramId){ alertInline('先選一個菜單或自由走'); return; }
+    if(!isConnected){ alertCenter('請先連接走步機才能開始運動', '去連線', connect); return; }
+    if(!selectedProgramId){ alertCenter('請先選一個菜單或自由走'); return; }
     const isFree = selectedProgramId==='free';
     const prog = isFree ? { id:'free', name:'自由走', segments:null } : PROGRAMS.find(p=>p.id===selectedProgramId);
     session = {
@@ -928,16 +992,19 @@
     $('liveTime').textContent='00:00';
     $('liveCal').textContent='--';
 
+    $('manualControls').style.display='flex';
     if(prog.segments){
       $('segmentBar').style.display='block';
-      $('manualControls').style.display='none';
       $('freeGoalLive').style.display='none';
       const seg0=prog.segments[0];
+      manualSpeed = seg0.speed;
+      manualIncline = seg0.incline;
+      $('spdVal').textContent = manualSpeed.toFixed(1);
+      $('incVal').textContent = manualIncline.toFixed(1);
       sendControl(buildSpeedCmd(seg0.speed));
       sendControl(buildInclineCmd(seg0.incline));
     }else{
       $('segmentBar').style.display='none';
-      $('manualControls').style.display='flex';
       manualSpeed = 1.3;
       $('spdVal').textContent = manualSpeed.toFixed(1);
       $('incVal').textContent = manualIncline.toFixed(1);
@@ -1011,6 +1078,7 @@
     $('sumDistance').textContent = s.distanceKm.toFixed(2);
     $('sumAvgSpeed').textContent = s.avgSpeed.toFixed(1)+' km/h';
     $('sumCal').textContent = s.calories!=null ? s.calories : '—';
+    $('sumSteps').textContent = s.steps!=null ? s.steps : '—';
     applyMascot($('summaryMascot'), lastGoalPct);
     renderChart($('chartHost'), s.samples);
   }
@@ -1209,6 +1277,7 @@
       <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-green">${ICON_DISTANCE}</span><span class="l">距離 km</span></div><div class="v">${(s.distanceKm||0).toFixed(2)}</div></div>
       <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-purple">${ICON_SPEED}</span><span class="l">平均速度</span></div><div class="v">${(s.avgSpeed||0).toFixed(1)} km/h</div></div>
       <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-red">${ICON_CAL}</span><span class="l">大卡</span></div><div class="v">${s.calories!=null?s.calories:'—'}</div></div>
+      <div class="stat-tile wide"><div class="top"><span class="badge-sm badge-color-orange">${ICON_STEPS}</span><span class="l">約略步數（依距離估算）</span></div><div class="v">${s.steps!=null ? s.steps : Math.round((s.distanceKm||0)*1000/STEP_STRIDE_M)}</div></div>
     `;
     renderChart($('detailChartHost'), s.samples||[]);
     $('detailSaveHealthBtn').onclick = ()=>sendToHealth(s);
