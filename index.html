@@ -394,7 +394,7 @@
             <div class="l">速度 km/h</div>
             <div class="row">
               <button id="spdDown">−</button>
-              <div class="val mono" id="spdVal">0.3</div>
+              <div class="val mono" id="spdVal">0.1</div>
               <button id="spdUp">+</button>
             </div>
           </div>
@@ -536,15 +536,15 @@
   /* ============ Preset programs ============ */
   const PROGRAMS = [
     { id:'eatwalk10', name:'吃飽飯走走', desc:'10分鐘・飯後超和緩散步', group:'short', type:'gentle', segments:[
-      {label:'暖身', duration:40, speed:0.3, incline:0},
-      {label:'暖身加速', duration:40, speed:0.9, incline:0},
-      {label:'暖身加速', duration:40, speed:1.5, incline:0},
-      {label:'穩定緩走', duration:360, speed:2.2, incline:0},
-      {label:'緩和', duration:60, speed:1.6, incline:0},
+      {label:'暖身', duration:40, speed:0.1, incline:0},
+      {label:'暖身加速', duration:40, speed:0.9, incline:1},
+      {label:'暖身加速', duration:40, speed:1.5, incline:1},
+      {label:'穩定緩走', duration:360, speed:2.2, incline:2},
+      {label:'緩和', duration:60, speed:1.6, incline:1},
       {label:'緩和收操', duration:60, speed:1.3, incline:0},
     ]},
     { id:'recover15', name:'緩走恢復', desc:'15分鐘・低速平地，累的時候用', group:'short', type:'gentle', segments:[
-      {label:'暖身', duration:90, speed:0.3, incline:0},
+      {label:'暖身', duration:90, speed:0.1, incline:0},
       {label:'暖身加速', duration:90, speed:1.3, incline:0},
       {label:'暖身加速', duration:90, speed:2.4, incline:1},
       {label:'穩定緩走', duration:450, speed:2.8, incline:1},
@@ -552,7 +552,7 @@
       {label:'緩和收操', duration:90, speed:1.3, incline:0},
     ]},
     { id:'quick20', name:'快速間歇', desc:'20分鐘・上班前/下班後短時間間歇', group:'short', type:'interval', segments:[
-      {label:'暖身', duration:60, speed:0.3, incline:0},
+      {label:'暖身', duration:60, speed:0.1, incline:0},
       {label:'暖身加速', duration:60, speed:1.6, incline:0},
       {label:'暖身加速', duration:60, speed:3.0, incline:1},
       {label:'加速', duration:300, speed:5.5, incline:1.0},
@@ -564,7 +564,7 @@
       {label:'緩和收操', duration:60, speed:1.3, incline:0},
     ]},
     { id:'incline16', name:'短爬坡', desc:'16分鐘・快速衝一段坡度，最高衝到15%', group:'short', type:'incline', segments:[
-      {label:'暖身', duration:60, speed:0.3, incline:0},
+      {label:'暖身', duration:60, speed:0.1, incline:0},
       {label:'暖身加速', duration:60, speed:1.5, incline:0},
       {label:'暖身加速', duration:60, speed:2.8, incline:0},
       {label:'爬坡 1', duration:240, speed:4.0, incline:8.0},
@@ -574,27 +574,27 @@
       {label:'緩和', duration:60, speed:2.0, incline:0},
       {label:'緩和收操', duration:60, speed:1.3, incline:0},
     ]},
-    { id:'hua30', name:'華の散步', desc:'30分鐘・從0.3km/h開始，非常緩和的長走', group:'hua', type:'gentle', segments:[
-      {label:'暖身', duration:180, speed:0.3, incline:1},
-      {label:'暖身加速', duration:180, speed:0.6, incline:1},
+    { id:'hua30', name:'華の散步', desc:'30分鐘・從0.1km/h開始，非常緩和的長走', group:'hua', type:'gentle', segments:[
+      {label:'暖身', duration:180, speed:0.1, incline:0},
+      {label:'暖身加速', duration:180, speed:0.6, incline:0},
       {label:'暖身加速', duration:180, speed:0.9, incline:1},
-      {label:'暖身加速', duration:180, speed:1.3, incline:2},
+      {label:'暖身加速', duration:180, speed:1.3, incline:1},
       {label:'暖身加速', duration:180, speed:1.8, incline:2},
-      {label:'加速', duration:240, speed:1.9, incline:3},
+      {label:'加速', duration:240, speed:1.9, incline:2},
       {label:'加速', duration:240, speed:2.0, incline:3},
-      {label:'穩定', duration:300, speed:2.2, incline:4},
-      {label:'緩和', duration:60, speed:1.5, incline:2},
-      {label:'緩和收操', duration:60, speed:0.8, incline:1},
+      {label:'穩定', duration:300, speed:2.2, incline:3},
+      {label:'緩和', duration:60, speed:1.5, incline:1},
+      {label:'緩和收操', duration:60, speed:0.8, incline:0},
     ]},
-    { id:'hua10', name:'華の散步（短版）', desc:'10分鐘・從0.3km/h開始的短時間版本', group:'hua', type:'gentle', segments:[
-      {label:'暖身', duration:150, speed:0.3, incline:1},
-      {label:'暖身加速', duration:150, speed:1.5, incline:2},
-      {label:'穩定', duration:120, speed:2.0, incline:3},
+    { id:'hua10', name:'華の散步（短版）', desc:'10分鐘・從0.1km/h開始的短時間版本', group:'hua', type:'gentle', segments:[
+      {label:'暖身', duration:150, speed:0.1, incline:0},
+      {label:'暖身加速', duration:150, speed:1.5, incline:1},
+      {label:'穩定', duration:120, speed:2.0, incline:2},
       {label:'緩和', duration:90, speed:1.2, incline:1},
       {label:'緩和收操', duration:90, speed:0.3, incline:0},
     ]},
     { id:'fatburn30', name:'燃脂間歇', desc:'30分鐘・暖身+5組間歇+燃脂+緩和', group:'long', type:'interval', segments:[
-      {label:'暖身', duration:60, speed:0.3, incline:0},
+      {label:'暖身', duration:60, speed:0.1, incline:0},
       {label:'暖身加速', duration:60, speed:1.6, incline:1},
       {label:'暖身加速', duration:60, speed:3.0, incline:1.0},
       {label:'間歇衝刺', duration:100, speed:6.5, incline:2.0},
@@ -613,16 +613,16 @@
       {label:'緩和收操', duration:100, speed:1.3, incline:0},
     ]},
     { id:'gentle35', name:'緩走長效', desc:'35分鐘・穩定速度，強度低但時間拉長', group:'long', type:'gentle', segments:[
-      {label:'暖身', duration:90, speed:0.3, incline:0},
-      {label:'暖身加速', duration:90, speed:1.5, incline:0},
-      {label:'暖身加速', duration:90, speed:2.8, incline:1},
-      {label:'穩定緩走', duration:1560, speed:3.2, incline:1},
-      {label:'緩和', duration:90, speed:2.4, incline:0},
-      {label:'緩和', duration:90, speed:1.8, incline:0},
+      {label:'暖身', duration:90, speed:0.1, incline:0},
+      {label:'暖身加速', duration:90, speed:1.5, incline:1},
+      {label:'暖身加速', duration:90, speed:2.8, incline:2},
+      {label:'穩定緩走', duration:1560, speed:3.2, incline:3},
+      {label:'緩和', duration:90, speed:2.4, incline:2},
+      {label:'緩和', duration:90, speed:1.8, incline:1},
       {label:'緩和收操', duration:90, speed:1.3, incline:0},
     ]},
     { id:'incline40', name:'高爬坡耐力', desc:'40分鐘・坡度最高衝到15%，速度全程壓在4.0以內', group:'long', type:'incline', segments:[
-      {label:'暖身', duration:60, speed:0.3, incline:0},
+      {label:'暖身', duration:60, speed:0.1, incline:0},
       {label:'暖身加速', duration:60, speed:1.4, incline:1},
       {label:'暖身加速', duration:60, speed:2.5, incline:1},
       {label:'暖身加速', duration:60, speed:3.5, incline:1.0},
@@ -671,13 +671,13 @@
     try{
       if('wakeLock' in navigator){
         wakeLock = await navigator.wakeLock.request('screen');
-        alertInline('螢幕保持喚醒已啟用', 3000);
+        alertInline('螢幕保持喚醒已啟用', 5000);
       }else{
-        alertInline('此瀏覽器不支援螢幕保持喚醒，畫面仍可能自動熄屏', 4500);
+        alertInline('此瀏覽器不支援螢幕保持喚醒，畫面仍可能自動熄屏', 7000);
       }
     }catch(e){
       console.warn('wake lock request failed', e);
-      alertInline('螢幕保持喚醒啟用失敗：'+(e&&e.message?e.message:'未知原因'), 4500);
+      alertInline('螢幕保持喚醒啟用失敗：'+(e&&e.message?e.message:'未知原因'), 7000);
     }
   }
   function releaseWakeLock(){
@@ -692,7 +692,7 @@
 
   let selectedGroup = 'short';
   let selectedProgramId = null;
-  let manualSpeed = 0.3, manualIncline = 1.0;
+  let manualSpeed = 0.1, manualIncline = 1.0;
   let freeGoal = { type:'time', target:20 };
 
   let session = null; // active session object while running
@@ -761,7 +761,7 @@
           detail = [err && err.name, err && err.message, (!err || (!err.name && !err.message)) ? String(err) : ''].filter(Boolean).join(' — ');
         }catch(e){ detail = 'stringify失敗'; }
         if(!detail) detail = '(沒有任何錯誤細節，可能是連線在配對/服務探索階段被中斷)';
-        alertInline('連線失敗：'+detail, 7000);
+        alertInline('連線失敗：'+detail, 9000);
       }
     }
   }
@@ -787,7 +787,7 @@
     n.textContent=msg;
     n.style.cssText='position:fixed;left:16px;right:16px;bottom:90px;background:#FCE2E1;color:#8A2320;border:1px solid #F5B8B5;padding:12px 14px;border-radius:12px;font-size:13px;z-index:99;word-break:break-word;box-shadow:0 6px 20px rgba(60,20,15,.12);';
     document.body.appendChild(n);
-    setTimeout(()=>n.remove(), duration||3800);
+    setTimeout(()=>n.remove(), duration||6000);
   }
 
   function alertCenter(msg, actionLabel, actionFn){
@@ -836,7 +836,7 @@
     return controlQueue;
   }
   function sendControlChecked(bytes, label){
-    return sendControl(bytes).then(ok=>{ if(!ok) alertInline(`⚠️ 機器沒有確認收到「${label}」指令`, 5000); return ok; });
+    return sendControl(bytes).then(ok=>{ if(!ok) alertInline(`⚠️ 機器沒有確認收到「${label}」指令`, 8000); return ok; });
   }
   function _sendControlOne(bytes){
     return new Promise((resolve)=>{
@@ -918,7 +918,7 @@
   }
 
   function tick(){
-    if(!session || !session.running) return;
+    if(!session || !session.running || isPaused) return;
     const elapsed = (Date.now()-session.startedAt-session.pausedTotal)/1000;
     $('liveTime').textContent = fmtTime(elapsed);
     updateFreeGoalLive();
@@ -944,8 +944,8 @@
         manualIncline = seg.incline;
         $('spdVal').textContent = manualSpeed.toFixed(1);
         $('incVal').textContent = manualIncline.toFixed(0);
-        sendControl(buildSpeedCmd(seg.speed)).then(ok=>{ if(!ok) alertInline(`⚠️ 機器沒有確認收到「${seg.label}」的速度指令（${seg.speed}km/h），可能沒有真的變速`, 6000); });
-        sendControl(buildInclineCmd(seg.incline)).then(ok=>{ if(!ok) alertInline(`⚠️ 機器沒有確認收到「${seg.label}」的坡度指令（${seg.incline}%）`, 6000); });
+        sendControl(buildSpeedCmd(seg.speed)).then(ok=>{ if(!ok) alertInline(`⚠️ 機器沒有確認收到「${seg.label}」的速度指令（${seg.speed}km/h），可能沒有真的變速`, 9000); });
+        sendControl(buildInclineCmd(seg.incline)).then(ok=>{ if(!ok) alertInline(`⚠️ 機器沒有確認收到「${seg.label}」的坡度指令（${seg.incline}%）`, 9000); });
       }
       const seg=prog.segments[idx];
       const segElapsed = elapsed-segStart;
@@ -1095,7 +1095,7 @@
       sendControlChecked(buildInclineCmd(seg0.incline), `${seg0.label}的坡度`);
     }else{
       $('segmentBar').style.display='none';
-      manualSpeed = 0.3;
+      manualSpeed = 0.1;
       $('spdVal').textContent = manualSpeed.toFixed(1);
       $('incVal').textContent = manualIncline.toFixed(0);
       sendControlChecked(buildSpeedCmd(manualSpeed), '起始速度');
@@ -1396,7 +1396,7 @@
     const text = encodeURIComponent(JSON.stringify(payload));
     const url = `shortcuts://x-callback-url/run-shortcut?name=${encodeURIComponent(name)}&input=text&text=${text}`;
     console.log('[sendToHealth] payload', payload, 'url', url);
-    alertInline(`送出捷徑「${name}」：${payload.durationMin}分 / ${payload.distanceKm}km / ${payload.calories}大卡 / 約${payload.steps}步`, 4500);
+    alertInline(`送出捷徑「${name}」：${payload.durationMin}分 / ${payload.distanceKm}km / ${payload.calories}大卡 / 約${payload.steps}步`, 6500);
     window.location.href = url;
   }
 
