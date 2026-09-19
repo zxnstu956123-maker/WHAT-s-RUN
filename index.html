@@ -1435,8 +1435,8 @@
   $('detailModal').addEventListener('click', (e)=>{ if(e.target.id==='detailModal') $('detailModal').classList.remove('open'); });
   $('closeDetailBtn').addEventListener('click', ()=>$('detailModal').classList.remove('open'));
 
-  $('spdUp').addEventListener('click', ()=>{ manualSpeed=Math.min(16,manualSpeed+0.5); $('spdVal').textContent=manualSpeed.toFixed(1); sendControlChecked(buildSpeedCmd(manualSpeed), '速度調整'); });
-  $('spdDown').addEventListener('click', ()=>{ manualSpeed=Math.max(0.5,manualSpeed-0.5); $('spdVal').textContent=manualSpeed.toFixed(1); sendControlChecked(buildSpeedCmd(manualSpeed), '速度調整'); });
+  $('spdUp').addEventListener('click', ()=>{ manualSpeed=Math.min(16,Math.round((manualSpeed+0.1)*10)/10); $('spdVal').textContent=manualSpeed.toFixed(1); sendControlChecked(buildSpeedCmd(manualSpeed), '速度調整'); });
+  $('spdDown').addEventListener('click', ()=>{ manualSpeed=Math.max(0.5,Math.round((manualSpeed-0.1)*10)/10); $('spdVal').textContent=manualSpeed.toFixed(1); sendControlChecked(buildSpeedCmd(manualSpeed), '速度調整'); });
   $('incUp').addEventListener('click', ()=>{ manualIncline=Math.min(15,manualIncline+1); $('incVal').textContent=manualIncline.toFixed(0); sendControlChecked(buildInclineCmd(manualIncline), '坡度調整'); });
   $('incDown').addEventListener('click', ()=>{ manualIncline=Math.max(0,manualIncline-1); $('incVal').textContent=manualIncline.toFixed(0); sendControlChecked(buildInclineCmd(manualIncline), '坡度調整'); });
 
