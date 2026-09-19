@@ -363,6 +363,7 @@
         <div class="seg-toggle" id="groupToggle">
           <button type="button" data-val="short" class="seg-btn active">10-20分</button>
           <button type="button" data-val="long" class="seg-btn">30-40分</button>
+          <button type="button" data-val="hua" class="seg-btn">華の</button>
         </div>
         <div id="programList" style="margin-top:12px;"></div>
       </div>
@@ -393,7 +394,7 @@
             <div class="l">速度 km/h</div>
             <div class="row">
               <button id="spdDown">−</button>
-              <div class="val mono" id="spdVal">1.3</div>
+              <div class="val mono" id="spdVal">0.3</div>
               <button id="spdUp">+</button>
             </div>
           </div>
@@ -535,23 +536,24 @@
   /* ============ Preset programs ============ */
   const PROGRAMS = [
     { id:'eatwalk10', name:'吃飽飯走走', desc:'10分鐘・飯後超和緩散步', group:'short', type:'gentle', segments:[
-      {label:'暖身', duration:60, speed:1.3, incline:0},
-      {label:'暖身加速', duration:60, speed:1.8, incline:0},
+      {label:'暖身', duration:40, speed:0.3, incline:0},
+      {label:'暖身加速', duration:40, speed:0.9, incline:0},
+      {label:'暖身加速', duration:40, speed:1.5, incline:0},
       {label:'穩定緩走', duration:360, speed:2.2, incline:0},
       {label:'緩和', duration:60, speed:1.6, incline:0},
       {label:'緩和收操', duration:60, speed:1.3, incline:0},
     ]},
     { id:'recover15', name:'緩走恢復', desc:'15分鐘・低速平地，累的時候用', group:'short', type:'gentle', segments:[
-      {label:'暖身', duration:90, speed:1.3, incline:0},
-      {label:'暖身加速', duration:90, speed:1.8, incline:0},
+      {label:'暖身', duration:90, speed:0.3, incline:0},
+      {label:'暖身加速', duration:90, speed:1.3, incline:0},
       {label:'暖身加速', duration:90, speed:2.4, incline:1},
       {label:'穩定緩走', duration:450, speed:2.8, incline:1},
       {label:'緩和', duration:90, speed:2.0, incline:0},
       {label:'緩和收操', duration:90, speed:1.3, incline:0},
     ]},
     { id:'quick20', name:'快速間歇', desc:'20分鐘・上班前/下班後短時間間歇', group:'short', type:'interval', segments:[
-      {label:'暖身', duration:60, speed:1.3, incline:0},
-      {label:'暖身加速', duration:60, speed:2.0, incline:0},
+      {label:'暖身', duration:60, speed:0.3, incline:0},
+      {label:'暖身加速', duration:60, speed:1.6, incline:0},
       {label:'暖身加速', duration:60, speed:3.0, incline:1},
       {label:'加速', duration:300, speed:5.5, incline:1.0},
       {label:'衝刺', duration:150, speed:6.5, incline:2},
@@ -562,8 +564,8 @@
       {label:'緩和收操', duration:60, speed:1.3, incline:0},
     ]},
     { id:'incline16', name:'短爬坡', desc:'16分鐘・快速衝一段坡度，最高衝到15%', group:'short', type:'incline', segments:[
-      {label:'暖身', duration:60, speed:1.3, incline:0},
-      {label:'暖身加速', duration:60, speed:2.0, incline:0},
+      {label:'暖身', duration:60, speed:0.3, incline:0},
+      {label:'暖身加速', duration:60, speed:1.5, incline:0},
       {label:'暖身加速', duration:60, speed:2.8, incline:0},
       {label:'爬坡 1', duration:240, speed:4.0, incline:8.0},
       {label:'平緩喘息', duration:120, speed:4.5, incline:3},
@@ -572,9 +574,28 @@
       {label:'緩和', duration:60, speed:2.0, incline:0},
       {label:'緩和收操', duration:60, speed:1.3, incline:0},
     ]},
+    { id:'hua30', name:'華の散步', desc:'30分鐘・從0.3km/h開始，非常緩和的長走', group:'hua', type:'gentle', segments:[
+      {label:'暖身', duration:180, speed:0.3, incline:1},
+      {label:'暖身加速', duration:180, speed:0.6, incline:1},
+      {label:'暖身加速', duration:180, speed:0.9, incline:1},
+      {label:'暖身加速', duration:180, speed:1.3, incline:2},
+      {label:'暖身加速', duration:180, speed:1.8, incline:2},
+      {label:'加速', duration:240, speed:1.9, incline:3},
+      {label:'加速', duration:240, speed:2.0, incline:3},
+      {label:'穩定', duration:300, speed:2.2, incline:4},
+      {label:'緩和', duration:60, speed:1.5, incline:2},
+      {label:'緩和收操', duration:60, speed:0.8, incline:1},
+    ]},
+    { id:'hua10', name:'華の散步（短版）', desc:'10分鐘・從0.3km/h開始的短時間版本', group:'hua', type:'gentle', segments:[
+      {label:'暖身', duration:150, speed:0.3, incline:1},
+      {label:'暖身加速', duration:150, speed:1.5, incline:2},
+      {label:'穩定', duration:120, speed:2.0, incline:3},
+      {label:'緩和', duration:90, speed:1.2, incline:1},
+      {label:'緩和收操', duration:90, speed:0.3, incline:0},
+    ]},
     { id:'fatburn30', name:'燃脂間歇', desc:'30分鐘・暖身+5組間歇+燃脂+緩和', group:'long', type:'interval', segments:[
-      {label:'暖身', duration:60, speed:1.3, incline:0},
-      {label:'暖身加速', duration:60, speed:2.0, incline:1},
+      {label:'暖身', duration:60, speed:0.3, incline:0},
+      {label:'暖身加速', duration:60, speed:1.6, incline:1},
       {label:'暖身加速', duration:60, speed:3.0, incline:1.0},
       {label:'間歇衝刺', duration:100, speed:6.5, incline:2.0},
       {label:'間歇恢復', duration:60, speed:4.0, incline:0.0},
@@ -592,8 +613,8 @@
       {label:'緩和收操', duration:100, speed:1.3, incline:0},
     ]},
     { id:'gentle35', name:'緩走長效', desc:'35分鐘・穩定速度，強度低但時間拉長', group:'long', type:'gentle', segments:[
-      {label:'暖身', duration:90, speed:1.3, incline:0},
-      {label:'暖身加速', duration:90, speed:2.0, incline:0},
+      {label:'暖身', duration:90, speed:0.3, incline:0},
+      {label:'暖身加速', duration:90, speed:1.5, incline:0},
       {label:'暖身加速', duration:90, speed:2.8, incline:1},
       {label:'穩定緩走', duration:1560, speed:3.2, incline:1},
       {label:'緩和', duration:90, speed:2.4, incline:0},
@@ -601,9 +622,9 @@
       {label:'緩和收操', duration:90, speed:1.3, incline:0},
     ]},
     { id:'incline40', name:'高爬坡耐力', desc:'40分鐘・坡度最高衝到15%，速度全程壓在4.0以內', group:'long', type:'incline', segments:[
-      {label:'暖身', duration:60, speed:1.3, incline:0},
-      {label:'暖身加速', duration:60, speed:2.0, incline:1},
-      {label:'暖身加速', duration:60, speed:2.8, incline:1},
+      {label:'暖身', duration:60, speed:0.3, incline:0},
+      {label:'暖身加速', duration:60, speed:1.4, incline:1},
+      {label:'暖身加速', duration:60, speed:2.5, incline:1},
       {label:'暖身加速', duration:60, speed:3.5, incline:1.0},
       {label:'爬坡 1', duration:300, speed:4.0, incline:6.0},
       {label:'平緩', duration:180, speed:4.5, incline:1.0},
@@ -622,6 +643,30 @@
   let device=null, server=null, ftmsService=null;
   let isConnected=false;
   let wakeLock=null;
+  let audioCtx=null;
+  let lastBeepSecond=-1;
+  function ensureAudioCtx(){
+    try{
+      if(!audioCtx){ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+      if(audioCtx.state==='suspended'){ audioCtx.resume(); }
+    }catch(e){}
+  }
+  function beep(){
+    try{
+      ensureAudioCtx();
+      if(!audioCtx) return;
+      const osc=audioCtx.createOscillator();
+      const gain=audioCtx.createGain();
+      osc.type='sine';
+      osc.frequency.value=880;
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime+0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.18);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime+0.2);
+    }catch(e){}
+  }
   async function requestWakeLock(){
     try{
       if('wakeLock' in navigator){
@@ -647,7 +692,7 @@
 
   let selectedGroup = 'short';
   let selectedProgramId = null;
-  let manualSpeed = 1.3, manualIncline = 1.0;
+  let manualSpeed = 0.3, manualIncline = 1.0;
   let freeGoal = { type:'time', target:20 };
 
   let session = null; // active session object while running
@@ -893,6 +938,7 @@
       }
       if(idx!==segmentStartIdx){
         segmentStartIdx=idx;
+        lastBeepSecond=-1;
         const seg=prog.segments[idx];
         manualSpeed = seg.speed;
         manualIncline = seg.incline;
@@ -910,6 +956,13 @@
       $('segTotalTime').textContent = `${fmtTime(elapsed)} / ${fmtTime(prog.totalSec)}`;
       const nextSeg = prog.segments[idx+1];
       $('segNextLabel').textContent = nextSeg ? `接下來：${nextSeg.label} · ${nextSeg.speed}km/h` : '接下來：緩和結束';
+      if(nextSeg){
+        const secLeftInt = Math.ceil(segLeft);
+        if(secLeftInt>=1 && secLeftInt<=4 && secLeftInt!==lastBeepSecond){
+          lastBeepSecond = secLeftInt;
+          beep();
+        }
+      }
     }
   }
 
@@ -1016,6 +1069,8 @@
       maxSpeed: 0,
     };
     segmentStartIdx=-1;
+    lastBeepSecond=-1;
+    ensureAudioCtx();
     lastLive={};
 
     $('wo-picker').style.display='none';
@@ -1040,7 +1095,7 @@
       sendControlChecked(buildInclineCmd(seg0.incline), `${seg0.label}的坡度`);
     }else{
       $('segmentBar').style.display='none';
-      manualSpeed = 1.3;
+      manualSpeed = 0.3;
       $('spdVal').textContent = manualSpeed.toFixed(1);
       $('incVal').textContent = manualIncline.toFixed(0);
       sendControlChecked(buildSpeedCmd(manualSpeed), '起始速度');
@@ -1436,7 +1491,7 @@
   $('closeDetailBtn').addEventListener('click', ()=>$('detailModal').classList.remove('open'));
 
   $('spdUp').addEventListener('click', ()=>{ manualSpeed=Math.min(16,Math.round((manualSpeed+0.1)*10)/10); $('spdVal').textContent=manualSpeed.toFixed(1); sendControlChecked(buildSpeedCmd(manualSpeed), '速度調整'); });
-  $('spdDown').addEventListener('click', ()=>{ manualSpeed=Math.max(0.5,Math.round((manualSpeed-0.1)*10)/10); $('spdVal').textContent=manualSpeed.toFixed(1); sendControlChecked(buildSpeedCmd(manualSpeed), '速度調整'); });
+  $('spdDown').addEventListener('click', ()=>{ manualSpeed=Math.max(0.1,Math.round((manualSpeed-0.1)*10)/10); $('spdVal').textContent=manualSpeed.toFixed(1); sendControlChecked(buildSpeedCmd(manualSpeed), '速度調整'); });
   $('incUp').addEventListener('click', ()=>{ manualIncline=Math.min(15,manualIncline+1); $('incVal').textContent=manualIncline.toFixed(0); sendControlChecked(buildInclineCmd(manualIncline), '坡度調整'); });
   $('incDown').addEventListener('click', ()=>{ manualIncline=Math.max(0,manualIncline-1); $('incVal').textContent=manualIncline.toFixed(0); sendControlChecked(buildInclineCmd(manualIncline), '坡度調整'); });
 
