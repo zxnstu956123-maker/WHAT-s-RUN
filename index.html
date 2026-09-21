@@ -402,24 +402,6 @@
           <div class="track"><div class="fill" id="segFill" style="width:0%;"></div></div>
           <div class="row2"><span id="segNextLabel">接下來：—</span><span id="segTotalTime">00:00 / 00:00</span></div>
         </div>
-        <div id="profileChart" class="profile-chart" style="display:none;">
-          <div class="ptitle">全程速度／坡度剖面</div>
-          <svg viewBox="0 0 340 110" preserveAspectRatio="none">
-            <path id="profileInclineArea" fill="var(--accent-dim)" stroke="var(--accent)" stroke-width="1"></path>
-            <polyline id="profileSpeedLine" fill="none" stroke="var(--badge-blue)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
-            <line id="profileNowLine" x1="0" y1="6" x2="0" y2="108" stroke="var(--text)" stroke-width="1" stroke-dasharray="3,3"></line>
-            <circle id="profileNowDot" cx="0" cy="8" r="4" fill="var(--badge-blue)"></circle>
-          </svg>
-          <div class="profile-legend">
-            <span><i class="dot speed"></i>速度</span>
-            <span><i class="dot incline"></i>坡度</span>
-          </div>
-        </div>
-        <div class="live-grid">
-          <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.3 7-12a7 7 0 10-14 0c0 4.7 7 12 7 12z"/><circle cx="12" cy="9" r="2.2"/></svg></span><span class="l">距離 km</span></div><div class="v mono" id="liveDist">0.00</div></div>
-          <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.2 2"/></svg></span><span class="l">時間</span></div><div class="v mono" id="liveTime">00:00</div></div>
-          <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4.5-3 8.5a3 3 0 006 0c0-1.2-1-2-1-3 2 1.2 3 3.3 3 5.5a5 5 0 01-10 0C7 8.5 10 6 12 2z"/></svg></span><span class="l">大卡</span></div><div class="v mono" id="liveCal">--</div></div>
-        </div>
 
         <div id="manualControls" class="manual-controls" style="display:none;">
           <div class="stepper">
@@ -443,6 +425,25 @@
         <div class="control-row">
           <button class="btn-pause" id="pauseBtn">暫停</button>
           <button class="btn-stop" id="stopBtn">結束運動</button>
+        </div>
+
+        <div id="profileChart" class="profile-chart" style="display:none;">
+          <div class="ptitle">全程速度／坡度剖面</div>
+          <svg viewBox="0 0 340 70" preserveAspectRatio="none">
+            <path id="profileInclineArea" fill="var(--accent-dim)" stroke="var(--accent)" stroke-width="1"></path>
+            <polyline id="profileSpeedLine" fill="none" stroke="var(--badge-blue)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+            <line id="profileNowLine" x1="0" y1="4" x2="0" y2="68" stroke="var(--text)" stroke-width="1" stroke-dasharray="3,3"></line>
+            <circle id="profileNowDot" cx="0" cy="6" r="4" fill="var(--badge-blue)"></circle>
+          </svg>
+          <div class="profile-legend">
+            <span><i class="dot speed"></i>速度</span>
+            <span><i class="dot incline"></i>坡度</span>
+          </div>
+        </div>
+        <div class="live-grid">
+          <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.3 7-12a7 7 0 10-14 0c0 4.7 7 12 7 12z"/><circle cx="12" cy="9" r="2.2"/></svg></span><span class="l">距離 km</span></div><div class="v mono" id="liveDist">0.00</div></div>
+          <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.2 2"/></svg></span><span class="l">時間</span></div><div class="v mono" id="liveTime">00:00</div></div>
+          <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-3 4.5-3 8.5a3 3 0 006 0c0-1.2-1-2-1-3 2 1.2 3 3.3 3 5.5a5 5 0 01-10 0C7 8.5 10 6 12 2z"/></svg></span><span class="l">大卡</span></div><div class="v mono" id="liveCal">--</div></div>
         </div>
       </div>
     </div>
@@ -689,13 +690,13 @@
       const osc=audioCtx.createOscillator();
       const gain=audioCtx.createGain();
       osc.type='sine';
-      osc.frequency.value=880;
+      osc.frequency.value=1200;
       gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime+0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.18);
+      gain.gain.exponentialRampToValueAtTime(0.75, audioCtx.currentTime+0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.35);
       osc.connect(gain); gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(audioCtx.currentTime+0.2);
+      osc.stop(audioCtx.currentTime+0.37);
     }catch(e){}
   }
   function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
@@ -716,8 +717,17 @@
     if(wakeLock){ wakeLock.release().catch(()=>{}); wakeLock=null; }
   }
   document.addEventListener('visibilitychange', ()=>{
-    if(document.visibilityState==='visible' && session && session.running && !wakeLock){ requestWakeLock(); }
+    if(document.visibilityState==='visible' && session && session.running){
+      if(!wakeLock){ requestWakeLock(); }
+      ensureAudioCtx();
+    }
   });
+  // iOS suspends the AudioContext when the tab is backgrounded, and a plain resume()
+  // called from a timer (not a real tap) is silently ignored — it needs a genuine touch
+  // to actually unlock again. Any tap anywhere on the live workout screen re-arms it.
+  document.addEventListener('touchstart', ()=>{
+    if(session && session.running) ensureAudioCtx();
+  }, {passive:true});
   let chData=null, chStatus=null, chControl=null;
   let controlQueue = Promise.resolve();
   let pendingResolve=null;
@@ -727,7 +737,6 @@
   let manualSpeed = 1.0, manualIncline = 1.0;
   let freeGoal = { type:'time', target:20 };
   const RAMP_STEP_MS = 1500;
-  const COUNTDOWN_MS = 4000;
   let rampGen = 0;
   let rampStatus = null; // null | {phase:'countdown'|'moving', axis:'speed'|'incline'}
 
@@ -904,24 +913,27 @@
       await sleep(1100);
     }
   }
+  async function countdownBeeps(axis, gen){
+    for(let s=4; s>=1; s--){
+      if(gen!==rampGen) return false;
+      rampStatus = {phase:'countdown', axis, secLeft:s};
+      beep();
+      await sleep(1000);
+    }
+    return gen===rampGen;
+  }
   async function rampToSegment(seg){
     const gen = ++rampGen;
     const needSpeed = Math.abs(manualSpeed-seg.speed) >= 0.05;
     const needIncline = Math.round(manualIncline)!==Math.round(seg.incline);
     if(needSpeed){
-      rampStatus = {phase:'countdown', axis:'speed'};
-      beep();
-      await sleep(COUNTDOWN_MS);
-      if(gen!==rampGen) return;
+      if(!(await countdownBeeps('speed', gen))) return;
       rampStatus = {phase:'moving', axis:'speed'};
       await rampSpeedTo(seg.speed, gen);
       if(gen!==rampGen) return;
     }
     if(needIncline){
-      rampStatus = {phase:'countdown', axis:'incline'};
-      beep();
-      await sleep(COUNTDOWN_MS);
-      if(gen!==rampGen) return;
+      if(!(await countdownBeeps('incline', gen))) return;
       rampStatus = {phase:'moving', axis:'incline'};
       await rampInclineTo(seg.incline, gen);
       if(gen!==rampGen) return;
@@ -1045,11 +1057,11 @@
       let label;
       if(rampStatus && rampStatus.axis==='speed'){
         label = rampStatus.phase==='countdown'
-          ? `${seg.label} · 即將調速至 ${seg.speed}km/h`
+          ? `${seg.label} · ${rampStatus.secLeft}秒後調速至 ${seg.speed}km/h`
           : `${seg.label} · 調速中…目前 ${manualSpeed.toFixed(1)}km/h`;
       }else if(rampStatus && rampStatus.axis==='incline'){
         label = rampStatus.phase==='countdown'
-          ? `${seg.label} · 即將調坡度至 ${seg.incline}%`
+          ? `${seg.label} · ${rampStatus.secLeft}秒後調坡度至 ${seg.incline}%`
           : `${seg.label} · 調坡度中…目前 ${manualIncline.toFixed(0)}%`;
       }else{
         label = `${seg.label} · ${seg.speed}km/h · ${seg.incline}%`;
@@ -1137,7 +1149,7 @@
   }
 
   let profileMaxSpeed=1, profileTotalSec=1;
-  const PROFILE_W=340, PROFILE_SPEED_TOP=8, PROFILE_SPEED_BOTTOM=95, PROFILE_INCLINE_BASE=105, PROFILE_INCLINE_TOP=70;
+  const PROFILE_W=340, PROFILE_SPEED_TOP=4, PROFILE_SPEED_BOTTOM=58, PROFILE_INCLINE_BASE=64, PROFILE_INCLINE_TOP=42;
   function renderProfileChart(p){
     profileMaxSpeed = Math.max(...p.segments.map(s=>s.speed), 1);
     const maxIncline = Math.max(...p.segments.map(s=>s.incline), 1);
