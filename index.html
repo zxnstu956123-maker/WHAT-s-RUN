@@ -484,6 +484,7 @@
   <button data-view="home" class="active"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></span>首頁</button>
   <button data-view="workout"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="4" r="2"/><path d="M6 21l2.5-6 3 2 1.5-4.5 4 2.5"/><path d="M9 15l-3.5 2.5"/></svg></span>運動</button>
   <button data-view="history"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M9 3.5v2.2h6V3.5"/><path d="M8.2 11h7.6M8.2 14.6h7.6M8.2 7.4h4"/></svg></span>記錄</button>
+  <button id="wakeNavBtn"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v2M12 18v2M4 12h2M18 12h2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4"/><circle cx="12" cy="12" r="3.5"/></svg></span>喚醒提醒</button>
 </nav>
 
 <!-- settings modal -->
@@ -763,7 +764,7 @@
   const LS_KEY = 'dd05_sessions_v1';
   const LS_SETTINGS = 'dd05_settings_v1';
   const GOAL_RING_CIRC = 2*Math.PI*42;
-  const STEP_STRIDE_M = 0.7;
+  const STEP_STRIDE_M = 0.53;
 
   /* ============ helpers ============ */
   function $(id){ return document.getElementById(id); }
@@ -1226,6 +1227,9 @@
     segmentStartIdx=-1;
     rampGen++; rampStatus=null;
     ensureAudioCtx();
+    // some FTMS treadmills revoke control after a full STOP, so re-request it at the
+    // start of every workout, not just once at initial BLE connect
+    sendControl([OP.REQUEST_CONTROL]);
     lastLive={};
 
     $('wo-picker').style.display='none';
@@ -1268,24 +1272,37 @@
     $('pauseBtn').textContent='暫停';
   }
 
-  let isPaused=false, pauseStartedAt=null, pausedTargetSpeed=null;
+  let isPaused=false, pauseStartedAt=null, pausedTargetSpeed=null, pausedTargetIncline=null;
   async function togglePause(){
     if(!session) return;
     if(!isPaused){
       isPaused=true;
       pauseStartedAt=Date.now();
       pausedTargetSpeed = manualSpeed;
+      pausedTargetIncline = manualIncline;
       $('pauseBtn').textContent='繼續';
       const gen = ++rampGen; rampStatus=null;
       await rampSpeedFastTo(1.0, gen);
-      if(gen===rampGen) sendControl([OP.STOP,0x02]);
+      if(gen===rampGen){
+        sendControl([OP.STOP,0x02]);
+        // this DD05 flattens incline back to 0 whenever it pauses, so our tracked
+        // value has to match reality or the next manual/auto adjustment fights a stale number
+        manualIncline = 0;
+        $('incVal').textContent = manualIncline.toFixed(0);
+      }
     }else{
       isPaused=false;
       session.pausedTotal += (Date.now()-pauseStartedAt);
       $('pauseBtn').textContent='暫停';
       const gen = ++rampGen; rampStatus=null;
       sendControl([OP.START]);
-      await rampSpeedFastTo(pausedTargetSpeed!=null ? pausedTargetSpeed : manualSpeed, gen);
+      // resuming isn't time-critical like pausing is, so use the same smooth rate as
+      // between-segment ramps rather than the fast stop/pause rate — less jerky
+      await rampSpeedTo(pausedTargetSpeed!=null ? pausedTargetSpeed : manualSpeed, gen);
+      if(gen!==rampGen) return;
+      if(pausedTargetIncline!=null){
+        await rampInclineTo(pausedTargetIncline, gen);
+      }
     }
   }
 
@@ -1616,8 +1633,14 @@
   }
 
   /* ============ wire up ============ */
-  document.querySelectorAll('nav.bottom button').forEach(b=>{
+  document.querySelectorAll('nav.bottom button[data-view]').forEach(b=>{
     b.addEventListener('click', ()=>switchView(b.dataset.view));
+  });
+  $('wakeNavBtn').addEventListener('click', async ()=>{
+    await requestWakeLock();
+    await hardResetAudioCtx();
+    beep();
+    alertInline('喚醒與提示音已重新啟用', 3000);
   });
   $('goWorkoutBtn').addEventListener('click', ()=>switchView('workout'));
   $('connectBtn').addEventListener('click', connect);
