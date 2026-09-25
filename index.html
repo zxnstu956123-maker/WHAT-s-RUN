@@ -1164,32 +1164,54 @@
     return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"><polyline points="${pts.join(' ')}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   }
 
-  let profileMaxSpeed=1, profileTotalSec=1;
+  let profileMaxSpeed=1, profileTotalSec=1, profileSpeedCurve=[];
   const PROFILE_W=340, PROFILE_SPEED_TOP=4, PROFILE_SPEED_BOTTOM=58, PROFILE_INCLINE_BASE=64, PROFILE_INCLINE_TOP=42;
   function renderProfileChart(p){
     profileMaxSpeed = Math.max(...p.segments.map(s=>s.speed), 1);
     const maxIncline = Math.max(...p.segments.map(s=>s.incline), 1);
     profileTotalSec = p.totalSec;
-    let t=0; const speedPts=[]; const inclinePts=[`0,${PROFILE_INCLINE_BASE}`];
+    const speedY = s => (PROFILE_SPEED_BOTTOM-(s/profileMaxSpeed)*(PROFILE_SPEED_BOTTOM-PROFILE_SPEED_TOP)).toFixed(1);
+    const inclineY = pct => (PROFILE_INCLINE_BASE-(pct/maxIncline)*(PROFILE_INCLINE_BASE-PROFILE_INCLINE_TOP)).toFixed(1);
+    // one point per segment END time (diagonal ramp between them, not a flat staircase) —
+    // this mirrors how the real ramp engine actually moves: gradually toward each target
+    const speedPts = [`0,${speedY(p.segments[0].speed)}`];
+    const inclinePts = [`0,${PROFILE_INCLINE_BASE}`];
+    profileSpeedCurve = [{t:0, v:p.segments[0].speed}];
+    let t=0;
     p.segments.forEach(seg=>{
-      const x1=(t/p.totalSec)*PROFILE_W;
       t+=seg.duration;
-      const x2=(t/p.totalSec)*PROFILE_W;
-      const ys=(PROFILE_SPEED_BOTTOM-(seg.speed/profileMaxSpeed)*(PROFILE_SPEED_BOTTOM-PROFILE_SPEED_TOP)).toFixed(1);
-      speedPts.push(`${x1.toFixed(1)},${ys}`, `${x2.toFixed(1)},${ys}`);
-      const yi=(PROFILE_INCLINE_BASE-(seg.incline/maxIncline)*(PROFILE_INCLINE_BASE-PROFILE_INCLINE_TOP)).toFixed(1);
-      inclinePts.push(`${x1.toFixed(1)},${yi}`, `${x2.toFixed(1)},${yi}`);
+      const x=((t/p.totalSec)*PROFILE_W).toFixed(1);
+      speedPts.push(`${x},${speedY(seg.speed)}`);
+      inclinePts.push(`${x},${inclineY(seg.incline)}`);
+      profileSpeedCurve.push({t, v:seg.speed});
     });
     inclinePts.push(`${PROFILE_W},${PROFILE_INCLINE_BASE}`);
     $('profileSpeedLine').setAttribute('points', speedPts.join(' '));
     $('profileInclineArea').setAttribute('d', `M${inclinePts.join(' L')} Z`);
     updateProfileMarker(0);
   }
+  // interpolates the drawn speed line's own value at a given elapsed time, so the dot
+  // always sits exactly on the blue line — not on the live/actual speed, which can lag
+  // behind the plan (mid-ramp, or during a bug) and make the dot float off the line
+  function speedOnLineAt(elapsed){
+    const c = profileSpeedCurve;
+    if(!c.length) return 0;
+    if(elapsed<=c[0].t) return c[0].v;
+    for(let i=1;i<c.length;i++){
+      if(elapsed<=c[i].t){
+        const a=c[i-1], b=c[i];
+        const frac = b.t===a.t ? 0 : (elapsed-a.t)/(b.t-a.t);
+        return a.v + (b.v-a.v)*frac;
+      }
+    }
+    return c[c.length-1].v;
+  }
   function updateProfileMarker(elapsed){
     const el = $('profileChart');
     if(!el || el.style.display==='none') return;
     const x = Math.max(0, Math.min(PROFILE_W, (elapsed/profileTotalSec)*PROFILE_W));
-    const y = PROFILE_SPEED_BOTTOM-(manualSpeed/profileMaxSpeed)*(PROFILE_SPEED_BOTTOM-PROFILE_SPEED_TOP);
+    const v = speedOnLineAt(elapsed);
+    const y = PROFILE_SPEED_BOTTOM-(v/profileMaxSpeed)*(PROFILE_SPEED_BOTTOM-PROFILE_SPEED_TOP);
     $('profileNowLine').setAttribute('x1', x); $('profileNowLine').setAttribute('x2', x);
     $('profileNowDot').setAttribute('cx', x); $('profileNowDot').setAttribute('cy', y);
   }
@@ -1296,12 +1318,21 @@
       $('pauseBtn').textContent='暫停';
       const gen = ++rampGen; rampStatus=null;
       sendControl([OP.START]);
+      // If you paused mid-ramp (speed/incline still climbing toward this segment's real
+      // target), manualSpeed/manualIncline at that instant was only a partway value, not
+      // the target. For a scheduled program, always resume toward the CURRENT segment's
+      // actual target rather than that stale snapshot — otherwise you get stuck below where
+      // the segment meant you to be until the next segment change. Free walk has no segment
+      // target, so it falls back to whatever was manually set before pausing.
+      const curSeg = (session.program && session.program.segments) ? session.program.segments[segmentStartIdx] : null;
+      const targetSpeed = curSeg ? curSeg.speed : (pausedTargetSpeed!=null ? pausedTargetSpeed : manualSpeed);
+      const targetIncline = curSeg ? curSeg.incline : pausedTargetIncline;
       // resuming isn't time-critical like pausing is, so use the same smooth rate as
       // between-segment ramps rather than the fast stop/pause rate — less jerky
-      await rampSpeedTo(pausedTargetSpeed!=null ? pausedTargetSpeed : manualSpeed, gen);
+      await rampSpeedTo(targetSpeed, gen);
       if(gen!==rampGen) return;
-      if(pausedTargetIncline!=null){
-        await rampInclineTo(pausedTargetIncline, gen);
+      if(targetIncline!=null){
+        await rampInclineTo(targetIncline, gen);
       }
     }
   }
