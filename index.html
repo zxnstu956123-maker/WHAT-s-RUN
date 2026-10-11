@@ -518,6 +518,25 @@
       <label>達成後的獎勵金額（純顯示用，不會自動轉帳）</label>
       <input type="number" id="goalRewardInput" placeholder="1000">
     </div>
+    <div class="field">
+      <label>體重 kg（用來估算熱量）</label>
+      <input type="number" id="weightInput" placeholder="50" inputmode="decimal">
+    </div>
+
+    <button class="link-btn" id="showBackup" style="margin-top:18px;">備份／搬移記錄</button>
+    <div id="backupBox" style="display:none; margin-top:10px;">
+      <div class="field-note">換手機前先在舊手機匯出，再到新手機匯入。記錄只存在這支手機的瀏覽器裡。</div>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn-secondary" id="exportFileBtn" style="flex:1;">匯出檔案</button>
+        <button class="btn-secondary" id="exportCopyBtn" style="flex:1;">複製文字</button>
+      </div>
+      <textarea id="importText" placeholder="把備份文字貼在這裡" style="width:100%; height:70px; margin-top:10px; border:1px solid var(--border); border-radius:10px; padding:8px; font-size:12px; font-family:inherit; box-sizing:border-box;"></textarea>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn-secondary" id="importFileBtn" style="flex:1;">選擇檔案匯入</button>
+        <button class="btn-secondary" id="importTextBtn" style="flex:1;">貼上匯入</button>
+      </div>
+      <input type="file" id="importFileInput" accept=".json,application/json,text/plain" style="display:none;">
+    </div>
 
     <div style="margin-top:20px; display:flex; gap:10px;">
       <button class="btn-secondary" id="disconnectBtn" style="flex:1;">中斷藍牙連線</button>
@@ -764,7 +783,8 @@
   const LS_KEY = 'dd05_sessions_v1';
   const LS_SETTINGS = 'dd05_settings_v1';
   const GOAL_RING_CIRC = 2*Math.PI*42;
-  const STEP_STRIDE_M = 0.53;
+  const STEP_STRIDE_M = 0.40;
+  const DEFAULT_WEIGHT_KG = 50;
 
   /* ============ helpers ============ */
   function $(id){ return document.getElementById(id); }
@@ -778,6 +798,47 @@
   }
   function saveSettings(s){
     try{ localStorage.setItem(LS_SETTINGS, JSON.stringify(s)); }catch(e){}
+  }
+
+  /* ============ calories & steps (our own estimates) ============ */
+  function getWeightKg(){ const w = parseFloat(loadSettings().weightKg); return w>0 ? w : DEFAULT_WEIGHT_KG; }
+  function sessionSteps(s){ return Math.round((s.distanceKm||0)*1000/STEP_STRIDE_M); }
+  // ACSM walking equation (ml O2/kg/min, includes a grade term) -> METs -> kcal.
+  // The machine's own kcal figure is far too low at slow speeds, so we estimate our own.
+  function kcalPerSecond(speedKmh, inclinePct, kg){
+    const v = speedKmh*1000/60;
+    const vo2 = 0.1*v + 1.8*v*(Math.max(0, inclinePct||0)/100) + 3.5;
+    return (vo2/3.5)*kg/3600;
+  }
+  function estimateSessionKcal(s, kg){
+    const smp = s.samples||[];
+    let total = 0, counted = false;
+    for(let i=1;i<smp.length;i++){
+      const a=smp[i-1], b=smp[i];
+      const dt = b.t - a.t;
+      if(!(dt>0) || !(a.speed>0)) continue;
+      total += kcalPerSecond(a.speed, a.incline, kg)*dt;
+      counted = true;
+    }
+    if(counted) return total;
+    const sec = s.durationSec||0;
+    if(!sec) return 0;
+    return kcalPerSecond((s.distanceKm||0)/(sec/3600), 0, kg)*sec;
+  }
+  // keeps the curve's shape but caps how many points get stored: a 35-minute session is
+  // ~2000 samples, and localStorage is only a few MB, so unthinned saves would eventually fail
+  function thinSamples(smp, max){
+    if(!smp || smp.length<=max) return smp||[];
+    const step = Math.ceil(smp.length/max);
+    const thin = smp.filter((_,i)=> i%step===0);
+    if(thin[thin.length-1]!==smp[smp.length-1]) thin.push(smp[smp.length-1]);
+    return thin;
+  }
+  // sessions saved after this change carry their own estimate; older ones (which only
+  // have the machine's tiny kcal number) are re-estimated from their samples on the fly
+  function sessionCalories(s){
+    if(s.calSource==='est' && s.calories!=null) return s.calories;
+    return Math.round(estimateSessionKcal(s, getWeightKg()));
   }
 
   /* ============ Bluetooth connect ============ */
@@ -1006,7 +1067,7 @@
     if(flags & 0x0020){ off+=1; } // inst pace
     if(flags & 0x0040){ off+=1; } // avg pace
     if(flags & 0x0080){
-      if(off+2<=dv.byteLength){ out.energy = dv.getUint16(off,true); off+=2; }
+      if(off+2<=dv.byteLength){ off+=2; } // total energy: skipped, the machine's own kcal is unreliable at slow speeds
       if(off+2<=dv.byteLength){ off+=2; } // per hour
       if(off+1<=dv.byteLength){ off+=1; } // per min
     }
@@ -1022,14 +1083,16 @@
     if(d.speed!=null && d.speed>SPEED_SANITY_MAX){ d=Object.assign({},d,{speed:null}); }
     if(d.speed!=null){ $('liveSpeed').textContent = d.speed.toFixed(1); lastLive.speed=d.speed; }
     if(d.distance!=null){ $('liveDist').textContent = (d.distance/1000).toFixed(2); lastLive.distance=d.distance; }
-    if(d.energy!=null){ $('liveCal').textContent = d.energy; lastLive.energy=d.energy; }
     if(d.incline!=null){ lastLive.incline=d.incline; $('liveIncline').textContent = d.incline.toFixed(0); }
-    if(session && session.running){
+    // while paused the workout clock is frozen, so samples taken now would carry a stale,
+    // ever-growing time and then jump backwards on resume (the zigzag in the history chart)
+    if(session && session.running && !isPaused){
       const t = Math.round((Date.now()-session.startedAt-session.pausedTotal)/1000);
       if(d.speed!=null){
-        session.samples.push({ t, speed:d.speed, distance: d.distance!=null? d.distance/1000 : null, incline: lastLive.incline });
+        session.samples.push({ t, speed:d.speed, distance: d.distance!=null? +(d.distance/1000).toFixed(4) : null, incline: lastLive.incline });
+        session.maxSpeed = Math.max(session.maxSpeed||0, d.speed);
+        $('liveCal').textContent = Math.round(estimateSessionKcal(session, session.weightKg));
       }
-      if(d.speed!=null) session.maxSpeed = Math.max(session.maxSpeed||0, d.speed);
     }
   }
   let lastLive = {};
@@ -1245,6 +1308,7 @@
       running: true,
       samples: [],
       maxSpeed: 0,
+      weightKg: getWeightKg(),
     };
     segmentStartIdx=-1;
     rampGen++; rampStatus=null;
@@ -1262,7 +1326,7 @@
     $('liveIncline').textContent='0';
     $('liveDist').textContent='0.00';
     $('liveTime').textContent='00:00';
-    $('liveCal').textContent='--';
+    $('liveCal').textContent='0';
 
     $('manualControls').style.display='flex';
     if(prog.segments){
@@ -1363,9 +1427,10 @@
     session.endedAt = Date.now();
     session.durationSec = Math.round((session.endedAt-session.startedAt-session.pausedTotal)/1000);
     session.distanceKm = lastLive.distance!=null ? lastLive.distance/1000 : (session.samples.length ? (session.samples[session.samples.length-1].distance||0) : 0);
-    session.calories = lastLive.energy!=null ? lastLive.energy : null;
+    session.calories = Math.round(estimateSessionKcal(session, session.weightKg));
+    session.calSource = 'est';
     session.avgSpeed = session.durationSec>0 ? (session.distanceKm/(session.durationSec/3600)) : 0;
-    session.steps = Math.round((session.distanceKm||0)*1000/STEP_STRIDE_M);
+    session.steps = sessionSteps(session);
 
     await saveSession(session);
     await refreshHome();
@@ -1426,6 +1491,7 @@
 
   async function saveSession(s){
     const body = JSON.parse(JSON.stringify(s)); // drop functions, ensure plain
+    body.samples = thinSamples(body.samples, 400);
     if(dbNS){
       try{ await dbNS.collection('sessions').doc(s.id).set(body); return; }catch(e){ console.warn('db save failed', e); }
     }
@@ -1581,8 +1647,8 @@
       <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-blue">${ICON_TIME}</span><span class="l">時長</span></div><div class="v">${fmtTime(s.durationSec||0)}</div></div>
       <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-green">${ICON_DISTANCE}</span><span class="l">距離 km</span></div><div class="v">${(s.distanceKm||0).toFixed(2)}</div></div>
       <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-purple">${ICON_SPEED}</span><span class="l">平均速度</span></div><div class="v">${(s.avgSpeed||0).toFixed(1)} km/h</div></div>
-      <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-red">${ICON_CAL}</span><span class="l">大卡</span></div><div class="v">${s.calories!=null?s.calories:'—'}</div></div>
-      <div class="stat-tile wide"><div class="top"><span class="badge-sm badge-color-orange">${ICON_STEPS}</span><span class="l">約略步數（依距離估算）</span></div><div class="v">${s.steps!=null ? s.steps : Math.round((s.distanceKm||0)*1000/STEP_STRIDE_M)}</div></div>
+      <div class="stat-tile"><div class="top"><span class="badge-sm badge-color-red">${ICON_CAL}</span><span class="l">大卡</span></div><div class="v">${sessionCalories(s)}</div></div>
+      <div class="stat-tile wide"><div class="top"><span class="badge-sm badge-color-orange">${ICON_STEPS}</span><span class="l">約略步數（依距離估算）</span></div><div class="v">${sessionSteps(s)}</div></div>
     `;
     renderChart($('detailChartHost'), s.samples||[]);
     $('detailSaveHealthBtn').onclick = ()=>sendToHealth(s);
@@ -1602,8 +1668,8 @@
       type:'Walking',
       durationMin: Math.round((s.durationSec||0)/60),
       distanceKm: Number((s.distanceKm||0).toFixed(2)),
-      calories: s.calories!=null ? Math.round(s.calories) : 0,
-      steps: s.steps!=null ? s.steps : Math.round((s.distanceKm||0)*1000/STEP_STRIDE_M),
+      calories: sessionCalories(s),
+      steps: sessionSteps(s),
       date: s.date,
     };
     const text = encodeURIComponent(JSON.stringify(payload));
@@ -1632,6 +1698,7 @@
     $('shortcutNameInput').value = s.shortcutName || '';
     $('goalTitleInput').value = s.goalTitle || '麻麻の零用錢';
     $('goalRewardInput').value = s.goalReward!=null ? s.goalReward : 1000;
+    $('weightInput').value = s.weightKg>0 ? s.weightKg : DEFAULT_WEIGHT_KG;
     setGoalTypeUI(s.goalType || 'count');
     $('settingsModal').classList.add('open');
   }
@@ -1641,9 +1708,11 @@
     const goalTitle = $('goalTitleInput').value.trim() || '麻麻の零用錢';
     const goalReward = parseInt($('goalRewardInput').value,10) || 0;
     const targetVal = parseInt($('goalTargetInput').value,10);
+    const weightVal = parseFloat($('weightInput').value);
     const next = {
       shortcutName:name, goalTitle, goalReward, goalType:settingsGoalType,
-      goalCountTarget: s.goalCountTarget||20, goalMinutesTarget: s.goalMinutesTarget||480
+      goalCountTarget: s.goalCountTarget||20, goalMinutesTarget: s.goalMinutesTarget||480,
+      weightKg: weightVal>0 ? weightVal : DEFAULT_WEIGHT_KG
     };
     if(settingsGoalType==='minutes') next.goalMinutesTarget = targetVal||480;
     else next.goalCountTarget = targetVal||20;
@@ -1705,6 +1774,68 @@
   $('disconnectBtn').addEventListener('click', ()=>{
     if(device && device.gatt && device.gatt.connected) device.gatt.disconnect();
     closeSettings();
+  });
+
+  /* ============ backup / restore ============ */
+  const BACKUP_MAX_SAMPLES = 300;
+  async function buildBackupText(){
+    const all = await loadAllSessions();
+    const sessions = all.map(s=> Object.assign({}, s, {samples: thinSamples(s.samples, BACKUP_MAX_SAMPLES)}));
+    return JSON.stringify({app:'dd05', version:1, exportedAt:Date.now(), sessions});
+  }
+  async function importBackupText(text){
+    let data;
+    try{ data = JSON.parse(text); }catch(e){ alertInline('內容不是有效的備份資料', 6000); return; }
+    const list = Array.isArray(data) ? data : (data && data.sessions);
+    if(!Array.isArray(list)){ alertInline('找不到可匯入的記錄', 6000); return; }
+    let n=0;
+    for(const s of list){
+      if(s && s.id && s.startedAt){ await saveSession(s); n++; }
+    }
+    await refreshHome(); await refreshHistory();
+    alertInline(n ? `已匯入 ${n} 筆記錄` : '沒有可匯入的記錄', 6000);
+  }
+  $('showBackup').addEventListener('click', ()=>{
+    const box = $('backupBox');
+    box.style.display = box.style.display==='none' ? 'block' : 'none';
+  });
+  $('exportFileBtn').addEventListener('click', async ()=>{
+    const text = await buildBackupText();
+    const name = `dd05-backup-${todayStr()}.json`;
+    try{
+      const file = new File([text], name, {type:'application/json'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], title:name});
+        return;
+      }
+    }catch(e){ if(e && e.name==='AbortError') return; }
+    const url = URL.createObjectURL(new Blob([text], {type:'application/json'}));
+    const a = document.createElement('a'); a.href=url; a.download=name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  });
+  $('exportCopyBtn').addEventListener('click', async ()=>{
+    const text = await buildBackupText();
+    try{
+      await navigator.clipboard.writeText(text);
+      alertInline('備份文字已複製，可貼到 LINE 的 Keep 或備忘錄', 6000);
+    }catch(e){
+      $('importText').value = text;
+      $('importText').select();
+      alertInline('無法自動複製，請在下方文字框全選後手動複製', 8000);
+    }
+  });
+  $('importFileBtn').addEventListener('click', ()=> $('importFileInput').click());
+  $('importFileInput').addEventListener('change', async (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if(f) await importBackupText(await f.text());
+    e.target.value='';
+  });
+  $('importTextBtn').addEventListener('click', async ()=>{
+    const t = $('importText').value.trim();
+    if(!t){ alertInline('請先貼上備份文字', 4000); return; }
+    await importBackupText(t);
+    $('importText').value='';
   });
   $('detailModal').addEventListener('click', (e)=>{ if(e.target.id==='detailModal') $('detailModal').classList.remove('open'); });
   $('closeDetailBtn').addEventListener('click', ()=>$('detailModal').classList.remove('open'));
